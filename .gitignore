@@ -1,0 +1,40 @@
+# Python stuff
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtualenv
+env/
+venv/
+ENV/
+.venv/
+
+# Django migrations
+**/migrations/
+*.sqlite3
+
+# Logs, coverage, test
+*.log
+.coverage
+*.cover
+*.pid
+htmlcov/
+coverage.xml
+nosetests.xml
+
+# Secrets
+.env
+*.pem
+*.key
+
+# VSCode config
+.vscode/
+
+# OS system files
+.DS_Store
+
+# Node / frontend junk (if any)
+node_modules/
+build/
+dist/
+
