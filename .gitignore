@@ -10,7 +10,7 @@ ENV/
 .venv/
 
 # Django migrations
-**/migrations/
+
 *.sqlite3
 
 # Logs, coverage, test
