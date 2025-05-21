@@ -13,7 +13,7 @@ class OTPVerification(Baseclass):
     mobile_number = models.CharField(max_length=15)
     otp_code = models.CharField(max_length=6)
     is_verified = models.BooleanField(default=False)
-    expired_at = models.DateTimeField()
+    expired_at = models.DateTimeField(null=True, blank=True)
     attempt_count = models.IntegerField(default=0)
 
 
