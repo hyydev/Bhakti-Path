@@ -74,6 +74,7 @@ class UserSerializer(serializers.ModelSerializer):
             expired_at=None, # Set the expiration time as needed
             is_verified=False
         )
+        otp_verification.save()
 
         return user
  
