@@ -2,11 +2,6 @@ from django.db import models
 from django.contrib.auth.models import AbstractBaseUser
 
 
-
-
-
-
-
 class Baseclass(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -19,12 +14,11 @@ class User(AbstractBaseUser, Baseclass):
     """
     User model for the application.
     """
-    uuid = models.AutoField(primary_key=True)
     full_name = models.CharField(max_length=255)
     email = models.EmailField(unique=True)
     password = models.CharField(max_length=255)
     mobile_number = models.CharField(max_length=15, unique=True)
-    is_active = models.BooleanField(default=True)
+    is_active = models.BooleanField(default=False)
     is_verified = models.BooleanField(default=False)
 
     def __str__(self):
