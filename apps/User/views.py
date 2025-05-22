@@ -1,4 +1,3 @@
-from django.shortcuts import render
 from rest_framework.response import Response
 from rest_framework.views import APIView ,status
 from .serializers import UserSerializer
@@ -18,7 +17,7 @@ class UserRegisterView(APIView):
         else:
             serializer.save()
             return Response({
-                "message": "User registered successfully."}, 
+                "message": "User registered successfully. OTP send"}, 
                 status=status.HTTP_201_CREATED)
         
 
