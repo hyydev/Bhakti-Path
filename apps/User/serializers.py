@@ -14,7 +14,7 @@ class UserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ['full_name', 'email', 'mobile_number', 'password','is_active', 'is_verified']
+        fields = ['id', 'full_name', 'email', 'mobile_number', 'password', 'is_active', 'is_verified']
         
         extra_kwargs = {
             'password': {'write_only': True},
@@ -77,5 +77,4 @@ class UserSerializer(serializers.ModelSerializer):
         otp_verification.save()
 
         return user
- 
-        
+    
