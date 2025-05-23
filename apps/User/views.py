@@ -63,5 +63,5 @@ class UserDetailView(APIView):
         return Response({
             "message": "User deleted successfully"
         }, status=status.HTTP_204_NO_CONTENT)
-        pass
+
        

@@ -1,6 +1,8 @@
 from rest_framework import serializers
+from rest_framework_simplejwt.tokens import RefreshToken
 from .models import OTPVerification
 from apps.User.models import User
+from django.db.models import Q
 
 
 class OTPVerificationSerializer(serializers.ModelSerializer):
@@ -77,10 +79,59 @@ class OTPVerificationSerializer(serializers.ModelSerializer):
         
 
     
+class UserloginSerializer(serializers.Serializer):
+    """
+    Serializer for user login with Jwt authentication.
+    """
+
+    email_or_mobile_number = serializers.CharField(required=True,write_only=True)
+    password = serializers.CharField(required=True, write_only=True)
+    access_token = serializers.CharField(read_only=True)
+    refresh_token = serializers.CharField(read_only=True)
+    user_id = serializers.IntegerField(read_only=True)
+    full_name = serializers.CharField(read_only=True)
+    is_verified = serializers.BooleanField(read_only=True)
+    is_active = serializers.BooleanField(read_only=True)
+
+    
+    def validate(self, attrs):
+        email_or_mobile_number = attrs.get('email_or_mobile_number')
+        password =attrs.get('password')
+
+        user = User.objects.filter(
+            Q(email=email_or_mobile_number) | Q(mobile_number=email_or_mobile_number)
+        ).first()
+
+        if not user:
+            raise serializers.ValidationError("User not found.")
+        
+        if not user.check_password(password):
+            raise serializers.ValidationError("Invalid password.")
+        
+        if not user.is_verified:
+            raise serializers.ValidationError("User is not verified")
+        
+        if not user.is_active:
+            user.is_active = True
+            user.save()
+
+        refresh = RefreshToken.for_user(user)
+   
+        attrs['access_token'] = str(refresh.access_token)
+        attrs['refresh_token'] = str(refresh)
+        attrs['is_verified'] = user.is_verified
+        attrs['is_active'] = user.is_active
+        return attrs
+    
+    
+        
+
+        
+
+        
 
 
-     
-
+   
         
 
        
