@@ -40,10 +40,17 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+
+    # Third-party apps
     'rest_framework',
     'rest_framework_simplejwt',
     'rest_framework_simplejwt.token_blacklist',
-    'apps.User',
+
+    # #singals
+    #  'apps.User.apps.UserConfig',
+
+     #installed apps
+    'apps.User.apps.UserConfig',
     'apps.Auth',
 ]
 

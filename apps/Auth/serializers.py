@@ -142,9 +142,6 @@ class UserlogoutSerializer(serializers.Serializer):
         if not token:
             raise serializers.ValidationError("Invalid refresh token.")
         
-        if token.blacklist:
-            raise serializers.ValidationError("Refresh token is already blacklisted.")
-        
         token.blacklist()
 
         attrs['refresh_token'] = refresh_token

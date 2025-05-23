@@ -1,6 +1,6 @@
 from rest_framework.response import Response
 from rest_framework.views import APIView ,status
-from .serializers import UserSerializer
+from .serializers import UserSerializer, UserProfileSerializer
 from .models import User
 
 # Create your views here.
@@ -65,3 +65,46 @@ class UserDetailView(APIView):
         }, status=status.HTTP_204_NO_CONTENT)
 
        
+class UserProfileView(APIView):
+    """
+    API view to retrieve user profile.
+    """
+
+    def get(self, request):
+        """
+        API view to get user profile.
+        """
+        user = request.user
+        if not user:
+            return Response({"message": "User not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        serializer = UserSerializer(user)
+        return Response({
+            "message": "User profile fetched successfully",
+            "data": serializer.data
+        }, status=status.HTTP_200_OK)
+
+    
+    def patch(self, request):
+        """
+        API view to update user profile.
+        """
+        user =request.user
+        if not user:
+            return Response({"message": "User not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        serilaizer = UserProfileSerializer(user,data=request.data, partial=True)
+
+        if not serilaizer.is_valid():
+            return Response(serilaizer.errors, status=status.HTTP_400_BAD_REQUEST)
+        
+        serilaizer.save()
+
+        return Response({
+            "message": "User profile updated successfully",
+            "data": serilaizer.data
+        }, status=status.HTTP_200_OK)
+    
+
+        
+

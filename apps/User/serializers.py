@@ -78,3 +78,16 @@ class UserSerializer(serializers.ModelSerializer):
 
         return user
     
+
+class UserProfileSerializer(serializers.ModelSerializer):
+    """
+    Serializer for the UserProfile model.
+    """
+    user = serializers.PrimaryKeyRelatedField(queryset=User.objects.all(), required=True)
+
+    class Meta:
+        model = UserProfile
+        fields = ['id', 'user', 'profile_picture', 'bio', 'date_of_birth',]
+
+    
+    
