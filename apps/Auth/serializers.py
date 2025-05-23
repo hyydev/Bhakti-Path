@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from rest_framework_simplejwt.tokens import RefreshToken
+
 from .models import OTPVerification
 from apps.User.models import User
 from django.db.models import Q
@@ -126,19 +127,27 @@ class UserloginSerializer(serializers.Serializer):
     
         
 
+class UserlogoutSerializer(serializers.Serializer):
+    """
+    Serializer for user logout with Jwt authentication.
+    """
+    refresh_token = serializers.CharField(required=True, write_only=True)
+
+    def validate(self,attrs):
+        refresh_token=(attrs.get('refresh_token'))
+        if not refresh_token:
+            raise serializers.ValidationError("Refresh token is required.")
         
-
+        token=RefreshToken(refresh_token)
+        if not token:
+            raise serializers.ValidationError("Invalid refresh token.")
         
-
-
-   
+        if token.blacklist:
+            raise serializers.ValidationError("Refresh token is already blacklisted.")
         
+        token.blacklist()
 
-       
+        attrs['refresh_token'] = refresh_token
+        return attrs
 
 
-        
-
-        
-    
-   

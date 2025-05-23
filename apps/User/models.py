@@ -21,6 +21,10 @@ class User(AbstractBaseUser, Baseclass):
     is_active = models.BooleanField(default=False)
     is_verified = models.BooleanField(default=False)
 
+    USERNAME_FIELD = 'email'
+    REQUIRED_FIELDS = ['full_name', 'mobile_number']
+    # objects = UserManager()  # Assuming you have a custom user manager do it later when Required
+
     def __str__(self):
         return self.full_name
     
