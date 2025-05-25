@@ -1,7 +1,7 @@
 from rest_framework.response import Response
 from rest_framework.views import APIView ,status
 from .serializers import UserSerializer, UserProfileSerializer
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from .models import User
 
@@ -70,15 +70,16 @@ class UserDetailView(APIView):
 
 
 class AllUserProfileView(APIView):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAdminUser] 
     """
     API view to retrieve all user profiles.
     """
 
-   
-
     def get(self, request):
         users = User.objects.all()
-        serializer = UserProfileSerializer([user.profile for user in users], many=True)
+        profiles = [user.profile for user in users if hasattr(user, 'profile')]
+        serializer = UserProfileSerializer(profiles, many=True)
         return Response({
             "message": "All User Profiles fetched successfully",
             "data": serializer.data
