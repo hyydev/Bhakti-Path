@@ -73,12 +73,8 @@ class UserProfile(Baseclass):
     date_of_birth = models.DateField(null=True, blank=True)
     user_address = models.ForeignKey('UserAddress', on_delete=models.CASCADE, null=True, blank=True)
 
- 
-
-
     def __str__(self):
         return f"{self.user.full_name}'s Profile"
-    
     class Meta:
         db_table = 'user_profile'
         ordering = ['-created_at']
@@ -88,7 +84,7 @@ class UserAddress(Baseclass):
     """
     User address model for storing user addresses.
     """
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='addresses')
+    user_profile = models.ForeignKey(UserProfile, on_delete=models.CASCADE, related_name='addresses', null=True, blank=True)
     address_line_1 = models.CharField(max_length=255)
     address_line_2 = models.CharField(max_length=255, null=True, blank=True)
     city = models.CharField(max_length=100)
@@ -97,7 +93,7 @@ class UserAddress(Baseclass):
     postal_code = models.CharField(max_length=20)
 
     def __str__(self):
-        return f"{self.user.full_name}'s Address"
+        return f"{self.user_profile.user.full_name}'s Address"
     
     class Meta:
         db_table = 'user_address'
