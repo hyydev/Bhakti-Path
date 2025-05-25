@@ -1,7 +1,10 @@
 from rest_framework.response import Response
 from rest_framework.views import APIView ,status
 from .serializers import UserSerializer, UserProfileSerializer
+from rest_framework.permissions import IsAuthenticated
+from rest_framework_simplejwt.authentication import JWTAuthentication
 from .models import User
+
 
 # Create your views here.
 
@@ -64,8 +67,14 @@ class UserDetailView(APIView):
             "message": "User deleted successfully"
         }, status=status.HTTP_204_NO_CONTENT)
 
+
+
        
 class UserProfileView(APIView):
+
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated] 
+
     """
     API view to retrieve user profile.
     """
@@ -89,6 +98,7 @@ class UserProfileView(APIView):
         """
         API view to update user profile.
         """
+
         user =request.user
         if not user:
             return Response({"message": "User not found"}, status=status.HTTP_404_NOT_FOUND)
