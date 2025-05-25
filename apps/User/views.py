@@ -69,6 +69,20 @@ class UserDetailView(APIView):
 
 
 
+class AllUserProfileView(APIView):
+    """
+    API view to retrieve all user profiles.
+    """
+
+   
+
+    def get(self, request):
+        users = User.objects.all()
+        serializer = UserProfileSerializer([user.profile for user in users], many=True)
+        return Response({
+            "message": "All User Profiles fetched successfully",
+            "data": serializer.data
+        }, status=status.HTTP_200_OK)
        
 class UserProfileView(APIView):
 
@@ -79,31 +93,35 @@ class UserProfileView(APIView):
     API view to retrieve user profile.
     """
 
-    def get(self, request):
-        """
-        API view to get user profile.
-        """
-        user = request.user
+    def get(self, request,id):
+        user =User.objects.get(id=id)
         if not user:
             return Response({"message": "User not found"}, status=status.HTTP_404_NOT_FOUND)
-
-        serializer = UserSerializer(user)
+        
+        if  request.user != user:
+            return Response({"message": "You are not authorized to view this profile"}, status=status.HTTP_403_FORBIDDEN)
+        
+        serializer = UserProfileSerializer(user.profile)
         return Response({
             "message": "User profile fetched successfully",
             "data": serializer.data
         }, status=status.HTTP_200_OK)
-
     
-    def patch(self, request):
+       
+    
+    def patch(self, request,id):
         """
         API view to update user profile.
         """
-
-        user =request.user
+        
+        user = User.objects.get(id=id)
         if not user:
             return Response({"message": "User not found"}, status=status.HTTP_404_NOT_FOUND)
+        
+        if request.user != user:
+            return Response({"message": "You are not authorized to update this profile"}, status=status.HTTP_403_FORBIDDEN)
 
-        serilaizer = UserProfileSerializer(user,data=request.data, partial=True)
+        serilaizer = UserProfileSerializer(user.profile,data=request.data, partial=True)
 
         if not serilaizer.is_valid():
             return Response(serilaizer.errors, status=status.HTTP_400_BAD_REQUEST)

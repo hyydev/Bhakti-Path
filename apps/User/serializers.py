@@ -83,11 +83,11 @@ class UserProfileSerializer(serializers.ModelSerializer):
     """
     Serializer for the UserProfile model.
     """
-    user = serializers.PrimaryKeyRelatedField(queryset=User.objects.all(), required=True)
+    user = UserSerializer(read_only=True)
 
     class Meta:
         model = UserProfile
-        fields = ['id', 'user', 'profile_picture', 'bio', 'date_of_birth',]
+        fields = ['id', 'user','profile_picture', 'date_of_birth','gender','user_address']
 
     
     
