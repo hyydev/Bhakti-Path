@@ -6,8 +6,6 @@ from rest_framework_simplejwt.authentication import JWTAuthentication
 from .models import User
 
 
-# Create your views here.
-
 
 class UserRegisterView(APIView):
     """

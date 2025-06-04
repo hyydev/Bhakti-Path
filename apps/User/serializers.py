@@ -90,4 +90,3 @@ class UserProfileSerializer(serializers.ModelSerializer):
         fields = ['id', 'user','profile_picture', 'date_of_birth','gender','user_address']
 
     
-    
