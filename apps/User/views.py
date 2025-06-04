@@ -31,6 +31,8 @@ class UserRegisterView(APIView):
     
 
 class UserDetailView(APIView):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAdminUser]
     """
     API  view to retrieve, update or delete a user.
     """
@@ -86,7 +88,7 @@ class AllUserProfileView(APIView):
 class UserProfileView(APIView):
 
     authentication_classes = [JWTAuthentication]
-    permission_classes = [IsAuthenticated] 
+    permission_classes = [IsAdminUser,IsAuthenticated] 
 
     """
     API view to retrieve user profile.
