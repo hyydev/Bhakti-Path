@@ -71,7 +71,6 @@ class UserProfile(Baseclass):
     profile_picture = models.ImageField(upload_to='user_profile_pictures/', null=True, blank=True)
     gender = models.CharField(max_length=10,null=True, blank=True)
     date_of_birth = models.DateField(null=True, blank=True)
-    user_address = models.ForeignKey('UserAddress', on_delete=models.CASCADE, null=True, blank=True)
 
     def __str__(self):
         return f"{self.user.full_name}'s Profile"
