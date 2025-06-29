@@ -150,7 +150,7 @@ class UserlogoutSerializer(serializers.Serializer):
         return attrs
 
 
-class Forget_passwordSerializer(serializers.Serializer):
+class ForgetPasswordSerializer(serializers.Serializer):
     """
     Serializer for forget password.
     """
