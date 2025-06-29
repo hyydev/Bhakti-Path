@@ -1,5 +1,7 @@
 from rest_framework import serializers
 from rest_framework_simplejwt.tokens import RefreshToken
+from random import randint
+import random
 
 from .models import OTPVerification
 from apps.User.models import User
@@ -148,3 +150,87 @@ class UserlogoutSerializer(serializers.Serializer):
         return attrs
 
 
+class Forget_passwordSerializer(serializers.Serializer):
+    """
+    Serializer for forget password.
+    """
+    email = serializers.EmailField(required=True)
+
+    """Validate email and check if user exists with that email.
+    """
+
+    def validate_email(self,value):
+        user =User.objects.filter(email=value).first()
+        if not user:
+            raise serializers.ValidationError("User with this email does not exist.")
+        return value
+    
+    
+    """ Generate Otp and save it in OTPVerification model."""
+    def create(self,validated_data):
+        email = validated_data.get('email')
+        user = User.objects.get(email=email)
+        
+
+        otp_code = str(random.randint(100000, 999999))
+        otp_obj =OTPVerification.objects.create(
+            user=user,
+            email=email,
+            mobile_number=user.mobile_number,
+            otp_code=otp_code
+        )
+        otp_obj.save()
+        # Here you can add logic to send the OTP to the user's email or mobile number
+        return otp_obj
+    
+
+class ResetPasswordSerializer(serializers.Serializer):
+    """ 
+    Serializer for reset password."""
+
+    otp_code =serializers.CharField(max_length=6, required=True)
+    new_password = serializers.CharField(max_length=255, required=True, write_only=True)
+    confirm_password = serializers.CharField(max_length=255, required=True, write_only=True)
+
+    def validate(self,attrs):
+        otp_code =attrs.get('otp_code')
+        new_password = attrs.get('new_password')
+        confirm_password = attrs.get('confirm_password')
+        if new_password != confirm_password:
+            raise serializers.ValidationError("New password and confirm password do not match.")
+        if len(new_password) < 8:
+            raise serializers.ValidationError("Password must be at least 8 characters long.")
+        if not new_password.isalnum():
+            raise serializers.ValidationError("Password must contain only alphanumeric characters.")
+        otp_obj = OTPVerification.objects.filter(otp_code=otp_code).first()
+        if not otp_obj:
+            raise serializers.ValidationError("Invalid OTP code.")
+        user = otp_obj.user
+        if not user:
+            raise serializers.ValidationError("User not found.")
+        if not user.is_verified:
+            raise serializers.ValidationError("User is not verified.")
+        user.set_password(new_password)
+        user.save()
+        otp_obj.delete()
+
+        attrs['user'] = user
+        return attrs
+    
+    
+
+    
+
+
+       
+
+
+        
+
+        
+        
+
+    
+
+
+    
