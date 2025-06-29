@@ -184,6 +184,36 @@ class Forget_passwordSerializer(serializers.Serializer):
         return otp_obj
     
 
+class VerifyResetOtpSerializer(serializers.Serializer):
+    """
+    Serilaizer for verify otp.
+    """
+    
+    otp_code = serializers.CharField(max_length=6, required=True)
+    email = serializers.EmailField(required=True)
+    mobile_number = serializers.CharField(max_length=15, required=True)
+
+    def validate(self, attrs):
+        otp_code = attrs.get('otp_code')
+        email = attrs.get('email')
+        mobile_number = attrs.get('mobile_number')
+
+        otp_obj = OTPVerification.objects.filter(
+            otp_code=otp_code,
+            email=email,
+            mobile_number=mobile_number
+        ).first()
+
+        if not otp_obj:
+            raise serializers.ValidationError("Invalid OTP code or email or mobile number.")
+
+        if otp_obj.is_verified:
+            raise serializers.ValidationError("OTP is already verified.")
+
+        attrs['otp_obj'] = otp_obj
+        return attrs
+    
+    
 class ResetPasswordSerializer(serializers.Serializer):
     """ 
     Serializer for reset password."""
