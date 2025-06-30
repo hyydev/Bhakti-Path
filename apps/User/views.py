@@ -1,6 +1,6 @@
 from rest_framework.response import Response
 from rest_framework.views import APIView ,status
-from .serializers import UserSerializer, UserProfileSerializer
+from .serializers import UserSerializer, UserProfileSerializer , UserAddresssSerializer
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from .models import User
@@ -135,5 +135,101 @@ class UserProfileView(APIView):
         }, status=status.HTTP_200_OK)
     
 
-        
 
+class UserAddressView(APIView):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated] 
+
+    """
+    API view to retrieve user address.
+    """
+
+    def get(self,request):
+        user = request.user
+        if not hasattr(user, 'profile'):
+            return Response({"message": "User profile not found"}, status=status.HTTP_404_NOT_FOUND)
+        
+        # Fetching the user profile
+        user_profile = user.profile
+        if not user_profile:
+            return Response({"message": "User profile not found"}, status=status.HTTP_404_NOT_FOUND)
+        addresses = user.profile.addresses.all()
+        serializer = UserAddressSerializer(addresses, many=True)
+        return Response({
+            "message": "User addresses fetched successfully",
+            "data": serializer.data
+        }, status=status.HTTP_200_OK)
+    
+
+    def post(self, request):
+        user = request.user
+        if not hasattr(user, 'profile'):
+            return Response({"message": "User profile not found"}, status=status.HTTP_404_NOT_FOUND)
+        
+        serializer = UserAddresssSerializer(data=request.data)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+        if serializer.validated_data.get('is_default', False):
+            user.profile.addresses.update(is_default=False)
+
+        serializer.save(user_profile=user.profile)
+        return Response({
+            "message": "User address created successfully",
+            "data": serializer.data
+        }, status=status.HTTP_201_CREATED)
+    
+    def patch(self, request, address_id):
+        user = request.user
+        if not hasattr(user, 'profile'):
+            return Response({"message": "User profile not found"}, status=status.HTTP_404_NOT_FOUND)
+        
+        
+        address = user.profile.addresses.filter(id=address_id).first()
+        if not address:
+            return Response({"message": "Address not found"}, status=status.HTTP_404_NOT_FOUND)
+        serializer = UserAddresssSerializer(address, data=request.data, partial=True)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        serializer.save()
+        return Response({
+            "message": "User address updated successfully",
+            "data": serializer.data
+        }, status=status.HTTP_200_OK)
+    
+    def delete(self, request, address_id):
+        user = request.user
+        if not hasattr(user, 'profile'):
+            return Response({"message": "User profile not found"}, status=status.HTTP_404_NOT_FOUND)
+        
+        address = user.profile.addresses.filter(id=address_id).first()
+        if not address:
+            return Response({"message": "Address not found"}, status=status.HTTP_404_NOT_FOUND)
+        
+        address.delete()
+        return Response({
+            "message": "User address deleted successfully"
+        }, status=status.HTTP_204_NO_CONTENT)
+    
+class SetDefaultAddressView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, address_id):
+        user = request.user
+        if not hasattr(user, 'profile'):
+            return Response({"message": "User profile not found"}, status=status.HTTP_404_NOT_FOUND)
+        
+        address = user.profile.addresses.filter(id=address_id).first()
+        if not address:
+            return Response({"message": "Address not found"}, status=status.HTTP_404_NOT_FOUND)
+        
+        # Set all addresses to not default
+        user.profile.addresses.update(is_default=False)
+        
+        # Set the selected address as default
+        address.is_default = True
+        address.save()
+        
+        return Response({"message": "Default address set successfully"}, status=status.HTTP_200_OK)
+    
+    

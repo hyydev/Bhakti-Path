@@ -79,14 +79,27 @@ class UserSerializer(serializers.ModelSerializer):
         return user
     
 
+class UserAddresssSerializer(serializers.ModelSerializer):
+    """
+    Serilaizer for the UserAddress model.
+
+    """
+
+    class Meta:
+        model = UserAddress
+        fields = ['id', 'address_line_1', 'address_line_2', 'city', 'state', 'country', 'postal_code', 'is_default']
+        extra_kwargs = {
+            'user_profile': {'read_only': True},
+            'is_default': {'required': False}
+        }
 class UserProfileSerializer(serializers.ModelSerializer):
     """
     Serializer for the UserProfile model.
     """
     user = UserSerializer(read_only=True)
+    addresses = UserAddresssSerializer(many=True, read_only=True)
 
     class Meta:
         model = UserProfile
-        fields = ['id', 'user','profile_picture', 'date_of_birth','gender','user_address']
+        fields = ['id', 'user','profile_picture', 'date_of_birth','gender', 'addresses']
 
-    
