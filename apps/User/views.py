@@ -154,7 +154,7 @@ class UserAddressView(APIView):
         if not user_profile:
             return Response({"message": "User profile not found"}, status=status.HTTP_404_NOT_FOUND)
         addresses = user.profile.addresses.all()
-        serializer = UserAddressSerializer(addresses, many=True)
+        serializer = UserAddresssSerializer(addresses, many=True)
         return Response({
             "message": "User addresses fetched successfully",
             "data": serializer.data
