@@ -41,7 +41,7 @@ class Product(Baseclass):
     meta_keywords = models.JSONField(default=list, blank=True)  # e.g. ["tulsi", "beads", "japa"]
 
     # Source Info
-    source_url = models.URLField(unique=True)
+    source_url = models.URLField(unique=True,blank=True,null=True)
     source_website = models.CharField(max_length=100, blank=True, null=True)  # e.g. 'mayapuri'
 
    

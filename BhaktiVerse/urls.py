@@ -40,12 +40,11 @@ schema_view = get_schema_view(
 )
 
 
-
-
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('user/', include('apps.User.urls')),
     path('auth/', include('apps.Auth.urls')),
+    path('product/',include('apps.ProductsManagement.urls')),
 
     # Swagger documentation URLs
     # Swagger/OpenAPI URLs
