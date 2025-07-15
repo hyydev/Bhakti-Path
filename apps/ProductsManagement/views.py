@@ -1,4 +1,4 @@
-from django.shortcuts import render
+from django.shortcuts import render ,get_object_or_404
 from rest_framework.views import APIView ,status
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
@@ -10,90 +10,67 @@ from apps.User.models import User ,UserProfile
 
 
 
+
+
+
 class ProductCreateUpdateview(APIView):
-
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAdminUser]
 
-    def post(self,request):
-
-        serializer  = ProductCreateUpdateSerializer(data=request.data)
-
+    def post(self, request):
+        serializer = ProductCreateUpdateSerializer(data=request.data)
         if not serializer.is_valid():
-             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-        
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        serializer.save()
         return Response({
-            "message": "Product information saved sucessfully ",
+            "message": "Product information saved successfully",
             "data": serializer.data
-        }, status=status.HTTP_200_OK)
-    
+        }, status=status.HTTP_201_CREATED)
 
-    
-    def patch(self,request,id):
-
-        product_id = Product.objects.get(id=id)
-        serializer = ProductCreateUpdateSerializer(product_id ,data=request.data(),Partial=True)
+    def patch(self, request, id):
+        product = get_object_or_404(Product, id=id)
+        serializer = ProductCreateUpdateSerializer(product, data=request.data, partial=True)
 
         if not serializer.is_valid():
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-        
+
+        serializer.save()
         return Response({
-            "message": "Product information updated  sucessfully ",
+            "message": "Product information updated successfully",
             "data": serializer.data
         }, status=status.HTTP_200_OK)
-    
 
-    
-    def delete(self,request,id):
-
-        product_id = Product.objects.get(id=id)
-        product_id.delete()
-
+    def delete(self, request, id):
+        product = get_object_or_404(Product, id=id)
+        product.delete()
         return Response({
-            "message":"Product information deleted sucessfully " ,
-            
-        },status=status.HTTP_200_OK)
+            "message": "Product deleted successfully"
+        }, status=status.HTTP_200_OK)
 
-        
 
-    
 class ProductDetailView(APIView):
-    
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAdminUser]
 
-    def get(self ,id):
-
-        product_id =Product.objects.get(id=id)
-        serializer = ProductDetailSerializer(product_id)
-        if not serializer.is_valid():
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-            
+    def get(self, request, id):
+        product = get_object_or_404(Product, id=id)
+        serializer = ProductDetailSerializer(product)
         return Response({
-                "message": "Product detials fetch sucessfully ",
-                "data": serializer.data
-            }, status=status.HTTP_200_OK)
-        
-      
-            
-           
-        
-
-    
-class ProductListView(APIView):
-    def get(self):
-
-        all_products = Product.object.all()
-        serializer = ProductDetailSerializer(all_products)
-
-        if not serializer.is_valid():
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-        
-        return Response({
-            "message": "Product information updated  sucessfully ",
+            "message": "Product details fetched successfully",
             "data": serializer.data
         }, status=status.HTTP_200_OK)
-        
+
+
+class ProductListView(APIView):
+    def get(self, request):
+        products = Product.objects.all()
+        serializer = ProductDetailSerializer(products, many=True)
+        return Response({
+            "message": "All product information fetched successfully",
+            "data": serializer.data
+        }, status=status.HTTP_200_OK)
+
 
         
      
