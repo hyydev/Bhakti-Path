@@ -90,7 +90,7 @@ class ProductCreateUpdateSerializer(serializers.ModelSerializer):
         def validate_price(self,value):
 
             if value  is not None and value < 0:
-                raise serializers.errors("Price should be greater than zero ")
+                raise serializers.ValidationError("Price should be greater than zero ")
             return value 
         
         
@@ -141,6 +141,7 @@ class ProductCreateUpdateSerializer(serializers.ModelSerializer):
                 sku = f"{base_sku}-{get_random_string(6).upper()}"
                 if not Product.objects.filter(sku=sku).exists():
                     return sku
+                
             
         def create(self ,validated_data):
             if "slug" in validated_data or not validated_data["slug"]:
@@ -148,8 +149,9 @@ class ProductCreateUpdateSerializer(serializers.ModelSerializer):
                 validated_data["slug"] = slugify(validated_data["title"])
                 validated_data["sku"] = self.generate_unique_sku(validated_data["title"])
 
-            
             return super().create(validated_data)
+        
+
 
         def update(self,instance, validated_data):
                   
