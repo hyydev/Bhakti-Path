@@ -1,5 +1,7 @@
 from rest_framework import serializers
 from .models import Product, Category  ,ProductImage
+from django.utils.crypto import get_random_string
+from django.utils.text import slugify
 
 
 
@@ -114,32 +116,50 @@ class ProductCreateUpdateSerializer(serializers.ModelSerializer):
                 for keyword in value:
                     if not isinstance(keyword,str):
                         raise serializers.ValidationError("keywords should me  a string ") 
-                    
-                    
-
-
-                
                 
                 return value
                 
-              
 
-                
-                return value 
+        def validate(self,attrs):
+            price = attrs.get("price")
+            original_price = attrs.get("original_price")
+
+            if price is not None and original_price is not None:
+
+                if price > original_price :
+
+                    raise serializers.ValidationError({
+                    "price": "Price cannot be greater than original price."
+                })
+
+            return attrs 
         
 
-
-
-                
+        def generate_unique_sku(self, title):
+            base_sku = title[:3].upper()
+            while True:
+                sku = f"{base_sku}-{get_random_string(6).upper()}"
+                if not Product.objects.filter(sku=sku).exists():
+                    return sku
             
+        def create(self ,validated_data):
+            if "slug" in validated_data or not validated_data["slug"]:
 
-        def validate(self,obj):
-            pass
+                validated_data["slug"] = slugify(validated_data["title"])
+                validated_data["sku"] = self.generate_unique_sku(validated_data["title"])
 
-        def create():
-            pass
-        def update():
-            pass
+            
+            return super().create(validated_data)
+
+        def update(self,instance, validated_data):
+                  
+            if "slug" in validated_data or not validated_data["slug"]:
+
+                validated_data["slug"] = slugify(validated_data.get("title", instance.title))
+                
+            return super().update(instance,validated_data)
+        
+            
         
      
 
