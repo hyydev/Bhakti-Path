@@ -1,6 +1,7 @@
 from django.db import models
 from django.utils.text import slugify
 from apps.User.models import Baseclass
+from django.utils.crypto import get_random_string
 
 class Product(Baseclass):
     PRODUCT_TYPES = [
@@ -24,6 +25,7 @@ class Product(Baseclass):
 
     # Basic Info
     title = models.CharField(max_length=255)
+    sku = models.CharField(max_length=100,unique=True,blank=True,null=True)
     slug = models.SlugField(unique=True, blank=True)  # For SEO-friendly URLs
     description = models.TextField(blank=True, null=True)
     product_type = models.CharField(max_length=20, choices=PRODUCT_TYPES, default='OTHER')
@@ -48,6 +50,14 @@ class Product(Baseclass):
 
     class Meta:
         ordering = ['-created_at']
+
+
+    def generate_unique_sku(self):
+        base_sku = self.title[:3].upper()
+        while True:
+            sku = f"{base_sku}-{get_random_string(6).upper()}"
+            if not Product.objects.filter(sku=sku).exists():
+                return sku
 
     def save(self, *args, **kwargs):
         if not self.slug:

@@ -4,13 +4,9 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework_simplejwt.authentication import JWTAuthentication
 
-from .serilaizers import ProductCreateUpdateSerializer,ProductDetailSerializer
+from .serializers import ProductCreateUpdateSerializer,ProductDetailSerializer,ProductImageSerilaizer
 from .models import Product, Category , ProductImage
 from apps.User.models import User ,UserProfile
-
-
-
-
 
 
 class ProductCreateUpdateview(APIView):
@@ -70,10 +66,5 @@ class ProductListView(APIView):
             "message": "All product information fetched successfully",
             "data": serializer.data
         }, status=status.HTTP_200_OK)
-
-
-        
-     
-
-            
+    
 

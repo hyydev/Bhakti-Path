@@ -10,6 +10,8 @@ class CategorySerilaizer(serializers.ModelSerializer):
         fields = '__all__'
         read_only_fields = ('id','slug')
 
+ 
+
 
 class ProductImageSerilaizer(serializers.ModelSerializer):
 
@@ -20,11 +22,13 @@ class ProductImageSerilaizer(serializers.ModelSerializer):
 
 class ProductBasicInfoSerializer(serializers.Serializer):
 
-    title = serializers.CharField()
-    slug = serializers.CharField()
+    title = serializers.CharField(max_length =255)
+    slug = serializers.CharField(required =True)
+    sku = serializers.CharField(max_length =100)
     description = serializers.CharField()
     product_type = serializers.CharField()
-    category = serializers.CharField(allow_null=True)
+    category = serializers.PrimaryKeyRelatedField(queryset=Category.objects.all(), allow_null=True)
+    category_name = serializers.CharField(source='category.name', read_only=True)
 
 
 class ProductPriceInfoSerializer(serializers.Serializer):
@@ -49,11 +53,95 @@ class ProductSourceInfoSerializer(serializers.Serializer):
 
 
 class ProductCreateUpdateSerializer(serializers.ModelSerializer):
+    category = serializers.PrimaryKeyRelatedField(queryset=Category.objects.all(), allow_null=True)
+    category_name = serializers.CharField(source='category.name', read_only=True)
 
     class Meta:
+
         model = Product
-        fields = '__all__'
-        read_only_fields = ('id', 'slug')
+
+        fields = [ 
+
+            "title",
+            "slug",
+            "description",
+            "product_type",
+            "sku",
+            "category",
+            "catogoty_name",
+            "price",
+            "original_price",
+            "in_stock",
+            "stock_quantity"
+            "meta_title",
+            "meta_description",
+            "meta_keywords",
+
+            ]
+        
+        extra_kewargs ={
+            "meta_title": {"required": False, "allow_blank": True},
+            "meta_description": {"required": False, "allow_blank": True},
+            "meta_keywords": {"required": False},
+        }
+
+        def validate_price(self,value):
+
+            if value  is not None and value < 0:
+                raise serializers.errors("Price should be greater than zero ")
+            return value 
+        
+        
+            
+        def validate_original_price(self,value):
+
+            if value is not None and value < 0:
+                raise serializers.ValidationError("Original price cannot be negative.")
+            
+            return value
+            
+
+        def validate_meta_keywords(self,value):
+                if value is None:
+                    return value
+                
+                if not isinstance(value,list):
+                    raise serializers.ValidationError("meta_keywords should be a list ")
+                
+                if len(value) > 0 :
+                    raise serializers.ValidationError(" only maximum 10 keywords are allowed  ")
+                
+                for keyword in value:
+                    if not isinstance(keyword,str):
+                        raise serializers.ValidationError("keywords should me  a string ") 
+                    
+                    
+
+
+                
+                
+                return value
+                
+              
+
+                
+                return value 
+        
+
+
+
+                
+            
+
+        def validate(self,obj):
+            pass
+
+        def create():
+            pass
+        def update():
+            pass
+        
+     
 
 
 class ProductDetailSerializer(serializers.Serializer):
@@ -63,20 +151,23 @@ class ProductDetailSerializer(serializers.Serializer):
     price_info = serializers.SerializerMethodField()
     seo_info   = serializers.SerializerMethodField()
     source_info = serializers.SerializerMethodField()
-    product_images = ProductImageSerilaizer(many =True)
+    images = ProductImageSerilaizer(many =True)
 
 
     def get_basic_info(self,obj):
+
         return ProductBasicInfoSerializer({
             'title': obj.title,
             'slug': obj.slug,
             'description': obj.description,
             'product_type': obj.product_type,
+            'sku':obj.sku,
             'category': obj.category.name if obj.category else None
         }).data
     
     
     def get_price_info(self,obj):
+
         return ProductPriceInfoSerializer({
             'price': obj.price,
             'original_price': obj.original_price,
@@ -86,6 +177,7 @@ class ProductDetailSerializer(serializers.Serializer):
     
 
     def get_seo_info(self, obj):
+
         return ProductMetaInfoSerializer({
             'meta_title': obj.meta_title,
             'meta_description': obj.meta_description,
@@ -93,6 +185,7 @@ class ProductDetailSerializer(serializers.Serializer):
         }).data
 
     def get_source_info(self, obj):
+
         return ProductSourceInfoSerializer({
             'source_url': obj.source_url,
             'source_website': obj.source_website
