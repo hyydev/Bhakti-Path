@@ -52,13 +52,6 @@ class Product(Baseclass):
         ordering = ['-created_at']
 
 
-    def generate_unique_sku(self):
-        base_sku = self.title[:3].upper()
-        while True:
-            sku = f"{base_sku}-{get_random_string(6).upper()}"
-            if not Product.objects.filter(sku=sku).exists():
-                return sku
-
     def save(self, *args, **kwargs):
         if not self.slug:
             self.slug = slugify(self.title)

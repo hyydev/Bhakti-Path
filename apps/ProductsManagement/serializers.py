@@ -70,57 +70,58 @@ class ProductCreateUpdateSerializer(serializers.ModelSerializer):
             "product_type",
             "sku",
             "category",
-            "catogoty_name",
+            "category_name",
             "price",
             "original_price",
             "in_stock",
-            "stock_quantity"
+            "stock_quantity",
             "meta_title",
             "meta_description",
             "meta_keywords",
 
             ]
         
-        extra_kewargs ={
+        extra_kwargs ={
             "meta_title": {"required": False, "allow_blank": True},
             "meta_description": {"required": False, "allow_blank": True},
             "meta_keywords": {"required": False},
         }
 
-        def validate_price(self,value):
+def validate_price(self,value):
 
-            if value  is not None and value < 0:
-                raise serializers.ValidationError("Price should be greater than zero ")
-            return value 
+    if value  is not None and value < 0:
+        raise serializers.ValidationError("Price should be greater than zero and cannot be None")
+    return value 
         
         
             
-        def validate_original_price(self,value):
+def validate_original_price(self,value):
 
-            if value is not None and value < 0:
-                raise serializers.ValidationError("Original price cannot be negative.")
+    if value is not None and value < 0:
+        raise serializers.ValidationError("Original price cannot be negative.")
             
-            return value
+    return value
             
 
-        def validate_meta_keywords(self,value):
-                if value is None:
-                    return value
+def validate_meta_keywords(self,value):
+    if value is None:
+        return value
                 
-                if not isinstance(value,list):
-                    raise serializers.ValidationError("meta_keywords should be a list ")
+    if not isinstance(value,list):
+        raise serializers.ValidationError("meta_keywords should be a list ")
                 
-                if len(value) > 0 :
-                    raise serializers.ValidationError(" only maximum 10 keywords are allowed  ")
+    if len(value) > 10 :
+        raise serializers.ValidationError(" only maximum 10 keywords are allowed  ")
                 
-                for keyword in value:
-                    if not isinstance(keyword,str):
-                        raise serializers.ValidationError("keywords should me  a string ") 
+    for keyword in value:
+        if not isinstance(keyword,str):
+            raise serializers.ValidationError("keywords should me  a string ") 
                 
-                return value
+        return value
+               
                 
 
-        def validate(self,attrs):
+def validate(self,attrs):
             price = attrs.get("price")
             original_price = attrs.get("original_price")
 
@@ -135,31 +136,29 @@ class ProductCreateUpdateSerializer(serializers.ModelSerializer):
             return attrs 
         
 
-        def generate_unique_sku(self, title):
-            base_sku = title[:3].upper()
-            while True:
-                sku = f"{base_sku}-{get_random_string(6).upper()}"
-                if not Product.objects.filter(sku=sku).exists():
-                    return sku
+def generate_unique_sku(self, title):
+    base_sku = title[:3].upper()
+    while True:
+        sku = f"{base_sku}-{get_random_string(6).upper()}"
+        if not Product.objects.filter(sku=sku).exists():
+            return sku
                 
             
-        def create(self ,validated_data):
-            if "slug" in validated_data or not validated_data["slug"]:
+def create(self, validated_data):
+        if not validated_data.get("slug"):
+            validated_data["slug"] = slugify(validated_data["title"])
 
-                validated_data["slug"] = slugify(validated_data["title"])
-                validated_data["sku"] = self.generate_unique_sku(validated_data["title"])
-
+        sku = validated_data.get("sku")
+        if not sku or sku.strip()=="":
+            validated_data["sku"] = self.generate_unique_sku(validated_data["title"])
             return super().create(validated_data)
-        
 
 
-        def update(self,instance, validated_data):
-                  
-            if "slug" in validated_data or not validated_data["slug"]:
+def update(self, instance, validated_data):
+      if not validated_data.get("slug"):
+        validated_data["slug"] = slugify(validated_data.get("title", instance.title))
+        return super().update(instance, validated_data)
 
-                validated_data["slug"] = slugify(validated_data.get("title", instance.title))
-                
-            return super().update(instance,validated_data)
         
             
         
