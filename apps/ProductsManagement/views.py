@@ -4,7 +4,7 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework_simplejwt.authentication import JWTAuthentication
 
-from .serializers import ProductCreateUpdateSerializer,ProductDetailSerializer,ProductImageSerilaizer
+from .serializers import ProductCreateUpdateSerializer,ProductDetailSerializer,ProductImageSerializer
 from .models import Product, Category , ProductImage
 from apps.User.models import User ,UserProfile
 
@@ -60,11 +60,11 @@ class ProductDetailView(APIView):
 
 class ProductListView(APIView):
     def get(self, request):
-        products = Product.objects.all()
+        products = Product.objects.select_related('category').all()
         serializer = ProductDetailSerializer(products, many=True)
         return Response({
             "message": "All product information fetched successfully",
             "data": serializer.data
         }, status=status.HTTP_200_OK)
-    
+
 

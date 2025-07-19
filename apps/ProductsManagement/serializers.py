@@ -15,7 +15,7 @@ class CategorySerilaizer(serializers.ModelSerializer):
  
 
 
-class ProductImageSerilaizer(serializers.ModelSerializer):
+class ProductImageSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ProductImage
@@ -30,7 +30,7 @@ class ProductBasicInfoSerializer(serializers.Serializer):
     description = serializers.CharField()
     product_type = serializers.CharField()
     category = serializers.PrimaryKeyRelatedField(queryset=Category.objects.all(), allow_null=True)
-    category_name = serializers.CharField(source='category.name', read_only=True)
+
 
 
 class ProductPriceInfoSerializer(serializers.Serializer):
@@ -87,84 +87,60 @@ class ProductCreateUpdateSerializer(serializers.ModelSerializer):
             "meta_keywords": {"required": False},
         }
 
-def validate_price(self,value):
-
-    if value  is not None and value < 0:
-        raise serializers.ValidationError("Price should be greater than zero and cannot be None")
-    return value 
-        
-        
-            
-def validate_original_price(self,value):
-
-    if value is not None and value < 0:
-        raise serializers.ValidationError("Original price cannot be negative.")
-            
-    return value
-            
-
-def validate_meta_keywords(self,value):
-    if value is None:
+    def validate_price(self, value):
+        if value is not None and value < 0:
+            raise serializers.ValidationError("Price should be greater than zero and cannot be None")
         return value
-                
-    if not isinstance(value,list):
-        raise serializers.ValidationError("meta_keywords should be a list ")
-                
-    if len(value) > 10 :
-        raise serializers.ValidationError(" only maximum 10 keywords are allowed  ")
-                
-    for keyword in value:
-        if not isinstance(keyword,str):
-            raise serializers.ValidationError("keywords should me  a string ") 
-                
+
+    def validate_original_price(self, value):
+        if value is not None and value < 0:
+            raise serializers.ValidationError("Original price cannot be negative.")
         return value
-               
-                
 
-def validate(self,attrs):
-            price = attrs.get("price")
-            original_price = attrs.get("original_price")
+    def validate_meta_keywords(self, value):
+        if value is None:
+            return value
+        if not isinstance(value, list):
+            raise serializers.ValidationError("meta_keywords should be a list")
+        if len(value) > 10:
+            raise serializers.ValidationError("Only maximum 10 keywords are allowed")
+        for keyword in value:
+            if not isinstance(keyword, str):
+                raise serializers.ValidationError("Each keyword must be a string")
+        return value
 
-            if price is not None and original_price is not None:
-
-                if price > original_price :
-
-                    raise serializers.ValidationError({
+    def validate(self, attrs):
+        price = attrs.get("price")
+        original_price = attrs.get("original_price")
+        if price is not None and original_price is not None:
+            if price > original_price:
+                raise serializers.ValidationError({
                     "price": "Price cannot be greater than original price."
                 })
+        return attrs
 
-            return attrs 
-        
+    def generate_unique_sku(self, title):
+        base_sku = title[:3].upper()
+        while True:
+            sku = f"{base_sku}-{get_random_string(6).upper()}"
+            if not Product.objects.filter(sku=sku).exists():
+                return sku
 
-def generate_unique_sku(self, title):
-    base_sku = title[:3].upper()
-    while True:
-        sku = f"{base_sku}-{get_random_string(6).upper()}"
-        if not Product.objects.filter(sku=sku).exists():
-            return sku
-                
-            
-def create(self, validated_data):
+    def create(self, validated_data):
         if not validated_data.get("slug"):
             validated_data["slug"] = slugify(validated_data["title"])
-
-        sku = validated_data.get("sku")
-        if not sku or sku.strip()=="":
+        if not validated_data.get("sku"):
             validated_data["sku"] = self.generate_unique_sku(validated_data["title"])
-            return super().create(validated_data)
+        return super().create(validated_data)
 
-
-def update(self, instance, validated_data):
-      if not validated_data.get("slug"):
-        validated_data["slug"] = slugify(validated_data.get("title", instance.title))
+    def update(self, instance, validated_data):
+        if not validated_data.get("slug"):
+            validated_data["slug"] = slugify(validated_data.get("title", instance.title))
         return super().update(instance, validated_data)
-
         
             
         
-     
-
-
+    
 class ProductDetailSerializer(serializers.Serializer):
 
     id = serializers.IntegerField()
@@ -172,10 +148,12 @@ class ProductDetailSerializer(serializers.Serializer):
     price_info = serializers.SerializerMethodField()
     seo_info   = serializers.SerializerMethodField()
     source_info = serializers.SerializerMethodField()
-    images = ProductImageSerilaizer(many =True)
+    images = ProductImageSerializer(many =True)
 
 
     def get_basic_info(self,obj):
+        category_obj = obj.category
+    
 
         return ProductBasicInfoSerializer({
             'title': obj.title,
@@ -183,7 +161,8 @@ class ProductDetailSerializer(serializers.Serializer):
             'description': obj.description,
             'product_type': obj.product_type,
             'sku':obj.sku,
-            'category': obj.category.name if obj.category else None
+            'category': obj.category ,
+            'category_name': obj.category.name if obj.category else None
         }).data
     
     
