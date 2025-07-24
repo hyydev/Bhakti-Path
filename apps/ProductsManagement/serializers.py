@@ -10,7 +10,7 @@ class CategorySerilaizer(serializers.ModelSerializer):
     class Meta:
         model =Category
         fields = '__all__'
-        read_only_fields = ('id','slug')
+        read_only_fields = ('id','sku','slug')
 
  
 
@@ -56,7 +56,7 @@ class ProductSourceInfoSerializer(serializers.Serializer):
 
 class ProductCreateUpdateSerializer(serializers.ModelSerializer):
     category = serializers.PrimaryKeyRelatedField(queryset=Category.objects.all(), allow_null=True)
-    category_name = serializers.CharField(source='category.name', read_only=True)
+
 
     class Meta:
 
@@ -81,6 +81,7 @@ class ProductCreateUpdateSerializer(serializers.ModelSerializer):
 
             ]
         
+        read_only_fields = ("sku", "slug") 
         extra_kwargs ={
             "meta_title": {"required": False, "allow_blank": True},
             "meta_description": {"required": False, "allow_blank": True},
@@ -153,6 +154,11 @@ class ProductDetailSerializer(serializers.Serializer):
 
     def get_basic_info(self,obj):
         category_obj = obj.category
+        if isinstance(category_obj, int):
+            try:
+                category_obj = Category.objects.get(pk=category_obj)
+            except Category.DoesNotExist:
+                category_obj = None
     
 
         return ProductBasicInfoSerializer({
@@ -162,7 +168,6 @@ class ProductDetailSerializer(serializers.Serializer):
             'product_type': obj.product_type,
             'sku':obj.sku,
             'category': obj.category ,
-            'category_name': obj.category.name if obj.category else None
         }).data
     
     

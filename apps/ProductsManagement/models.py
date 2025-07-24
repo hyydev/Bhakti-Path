@@ -25,8 +25,8 @@ class Product(Baseclass):
 
     # Basic Info
     title = models.CharField(max_length=255)
-    sku = models.CharField(max_length=100,unique=True,blank=True,null=True)
-    slug = models.SlugField(unique=True, blank=True)  # For SEO-friendly URLs
+    sku = models.CharField(max_length=100,unique=True)
+    slug = models.SlugField(unique=True)  # For SEO-friendly URLs
     description = models.TextField(blank=True, null=True)
     product_type = models.CharField(max_length=20, choices=PRODUCT_TYPES, default='OTHER')
     category = models.ForeignKey('Category', related_name='products', on_delete=models.CASCADE, blank=True, null=True)
@@ -71,7 +71,7 @@ class ProductImage(Baseclass):
 
 class Category(Baseclass):
     name = models.CharField(max_length=100, unique=True)
-    slug = models.SlugField(unique=True, blank=True)
+    slug = models.SlugField(unique=True)
     description = models.TextField(blank=True, null=True)
     icon = models.ImageField(upload_to='category-icons/', blank=True, null=True)  # Optional
     is_active = models.BooleanField(default=True)
