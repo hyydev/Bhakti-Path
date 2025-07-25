@@ -70,7 +70,6 @@ class ProductCreateUpdateSerializer(serializers.ModelSerializer):
             "product_type",
             "sku",
             "category",
-            "category_name",
             "price",
             "original_price",
             "in_stock",
@@ -78,6 +77,8 @@ class ProductCreateUpdateSerializer(serializers.ModelSerializer):
             "meta_title",
             "meta_description",
             "meta_keywords",
+            "source_url",
+            "source_website"
 
             ]
         
