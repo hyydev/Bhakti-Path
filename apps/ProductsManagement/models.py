@@ -25,8 +25,8 @@ class Product(Baseclass):
 
     # Basic Info
     title = models.CharField(max_length=255)
-    sku = models.CharField(max_length=100,unique=True)
-    slug = models.SlugField(unique=True)  # For SEO-friendly URLs
+    sku = models.CharField(max_length=100,unique=True,blank=True)
+    slug = models.SlugField(unique=True,blank=True)  # For SEO-friendly URLs
     description = models.TextField(blank=True, null=True)
     product_type = models.CharField(max_length=20, choices=PRODUCT_TYPES, default='OTHER')
     category = models.ForeignKey('Category', related_name='products', on_delete=models.CASCADE, blank=True, null=True)
@@ -50,11 +50,21 @@ class Product(Baseclass):
 
     class Meta:
         ordering = ['-created_at']
+    
+    def generate_unique_sku(self, title):
+        base_sku = title[:3].upper()
+        while True:
+            sku = f"{base_sku}-{get_random_string(6).upper()}"
+            if not Product.objects.filter(sku=sku).exists():
+                return sku
 
 
     def save(self, *args, **kwargs):
         if not self.slug:
             self.slug = slugify(self.title)
+        if not self.sku:
+            self.sku = self.generate_unique_sku(title=self.title)
+
         super().save(*args, **kwargs)
 
     def __str__(self):
@@ -71,7 +81,7 @@ class ProductImage(Baseclass):
 
 class Category(Baseclass):
     name = models.CharField(max_length=100, unique=True)
-    slug = models.SlugField(unique=True)
+    slug = models.SlugField(unique=True,blank=True)
     description = models.TextField(blank=True, null=True)
     icon = models.ImageField(upload_to='category-icons/', blank=True, null=True)  # Optional
     is_active = models.BooleanField(default=True)
