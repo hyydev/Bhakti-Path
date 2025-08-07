@@ -48,7 +48,7 @@ class ProductCreateUpdateview(APIView):
 
 class ProductDetailView(APIView):
     authentication_classes = [JWTAuthentication]
-    permission_classes = [IsAdminUser]
+    permission_classes = [IsAuthenticated]
 
     def get(self, request, id):
         product = get_object_or_404(Product, id=id)
