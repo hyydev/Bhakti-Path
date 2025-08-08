@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Product, Category  ,ProductImage
+from .models import Product, Category  ,ProductImage, Inventory
 from django.utils.crypto import get_random_string
 from django.utils.text import slugify
 
@@ -199,11 +199,39 @@ class ProductDetailSerializer(serializers.Serializer):
     
 
 
+class ProductInventoryInfoSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Product
+        fields = ['title', 'slug', 'sku',  'product_type', ]
 
 
 
 
+class InventorySerializer(serializers.ModelSerializer):
 
+    ProductDetails = ProductInventoryInfoSerializer(source = 'product',read_only =True)
+    class Meta:
+        model = Inventory
+        fields = [
+            'id',
+            'product',
+            'ProductDetails',
+            'quantity',
+            'is_in_stock',
+        ]
+        extra_kwargs = {
+        
+            'is_in_stock':{'read_only':True},  
+        }
+
+    def validate_quantity(self):
+        if self.quantity <= 0:
+            raise serializers.ValidationError('Quantity must be greater than 0')
+        
+    def validate_product(self):
+        if self.product is None:
+            raise serializers.ValidationError('Product is required')
+        
 
 
 

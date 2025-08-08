@@ -99,7 +99,6 @@ class Inventory(Baseclass):
     product = models.OneToOneField(Product, on_delete=models.CASCADE)
     quantity = models.IntegerField(default=0)
     is_in_stock = models.BooleanField(default=True)
-    updated_at = models.DateTimeField(auto_now=True)
 
 
     def save(self, *args, **kwargs):

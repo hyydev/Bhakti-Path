@@ -1,11 +1,13 @@
 from django.shortcuts import render ,get_object_or_404
 from rest_framework.views import APIView ,status
+from rest_framework import generics
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework_simplejwt.authentication import JWTAuthentication
+
 from .pagination import ProductPagination
-from .serializers import ProductCreateUpdateSerializer,ProductDetailSerializer,ProductImageSerializer
-from .models import Product, Category , ProductImage
+from .serializers import ProductCreateUpdateSerializer,ProductDetailSerializer,ProductImageSerializer,InventorySerializer
+from .models import Product, Category , ProductImage,Inventory
 from apps.User.models import User ,UserProfile
 from django.db.models import Q
 
@@ -122,6 +124,7 @@ class ProductListView(APIView):
         #Pagination
         paginator = ProductPagination()
         result_page = paginator.paginate_queryset(products, request)
+        
         serializer = ProductDetailSerializer(result_page, many=True)
         return Response({
             "message": "All product information fetched successfully",
@@ -129,3 +132,13 @@ class ProductListView(APIView):
         }, status=status.HTTP_200_OK)
 
 
+
+
+class InventoryListCreateAPIView(generics.ListCreateAPIView):
+    queryset = Inventory.objects.all().select_related('product')
+    serializer_class = InventorySerializer
+
+
+class InventoryRetrieveUpdateDestroyAPIView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Inventory.objects.all().select_related('product')
+    serializer_class = InventorySerializer
