@@ -202,7 +202,7 @@ class ProductDetailSerializer(serializers.Serializer):
 class ProductInventoryInfoSerializer(serializers.ModelSerializer):
     class Meta:
         model = Product
-        fields = ['title', 'slug', 'sku',  'product_type', ]
+        fields = ['title', 'slug', 'sku',  'product_type','price' ]
 
 
 

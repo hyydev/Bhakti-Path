@@ -4,6 +4,9 @@ from rest_framework import generics
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework_simplejwt.authentication import JWTAuthentication
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework import filters
+
 
 from .pagination import ProductPagination
 from .serializers import ProductCreateUpdateSerializer,ProductDetailSerializer,ProductImageSerializer,InventorySerializer
@@ -137,6 +140,27 @@ class ProductListView(APIView):
 class InventoryListCreateAPIView(generics.ListCreateAPIView):
     queryset = Inventory.objects.all().select_related('product')
     serializer_class = InventorySerializer
+
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
+
+    filterset_fields = {
+        'quantity': ['exact', 'gte', 'lte'],       # e.g. ?quantity__gte=10
+        'is_in_stock': ['exact'],                  # e.g. ?is_in_stock=True
+        'product__product_type': ['exact'],        # e.g. ?product__product_type=MALA
+        'product__category__slug': ['exact'],      # e.g. ?product__category__slug=books
+    }
+
+    search_fields = [                               # e.g. ?search=Tulsi
+        'product__title', 
+        'product__sku', 
+        'product__slug', 
+        'product__category__name'
+    ]  
+
+    ordering_fields = ['quantity', 'product__title', 'product__price']  # e.g. ?ordering=-quantity
+    ordering = ['-id'] 
+
+
 
 
 class InventoryRetrieveUpdateDestroyAPIView(generics.RetrieveUpdateDestroyAPIView):
