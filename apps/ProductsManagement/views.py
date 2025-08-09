@@ -165,4 +165,4 @@ class InventoryListCreateAPIView(generics.ListCreateAPIView):
 
 class InventoryRetrieveUpdateDestroyAPIView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Inventory.objects.all().select_related('product')
-    serializer_class = InventorySerializer
+    serializer_class = InventorySerializer 

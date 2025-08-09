@@ -224,17 +224,24 @@ class InventorySerializer(serializers.ModelSerializer):
             'is_in_stock':{'read_only':True},  
         }
 
-    def validate_quantity(self):
-        if self.quantity <= 0:
-            raise serializers.ValidationError('Quantity must be greater than 0')
+ 
+    def validate_quantity(self, value):
+        if value < 0:
+            raise serializers.ValidationError('Quantity cannot be negative')
+        return value
         
-    def validate_product(self):
-        if self.product is None:
+    def validate_product(self, value):
+        if value is None:
             raise serializers.ValidationError('Product is required')
-        
+        return value
 
 
-
+    def update(self,instance,validated_data):
+            quantity = validated_data.get('quantity', instance.quantity)
+            instance.quantity = quantity
+            instance.is_in_stock = quantity > 0
+            instance.save()
+            return instance
 
 
 
