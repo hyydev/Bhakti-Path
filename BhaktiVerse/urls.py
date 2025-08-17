@@ -45,6 +45,7 @@ urlpatterns = [
     path('user/', include('apps.User.urls')),
     path('auth/', include('apps.Auth.urls')),
     path('product/',include('apps.ProductsManagement.urls')),
+    path('order/',include('apps.Order.urls')),
 
     # Swagger documentation URLs
     # Swagger/OpenAPI URLs
