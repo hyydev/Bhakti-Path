@@ -22,6 +22,13 @@ class CartItem(Baseclass):
     quantity = models.PositiveIntegerField()
     price_at_time = models.DecimalField(max_digits=10, decimal_places=2)
 
+    class Meta:
+        unique_together = ('cart', 'product')
+        indexes = [
+            models.Index(fields=['cart']),
+            models.Index(fields=['product']),
+        ]
+
     @property
     def total_price(self):
         return self.price_at_time * self.quantity
