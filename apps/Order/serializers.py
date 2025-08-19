@@ -50,45 +50,40 @@ class AddtoCartItemSerilaizer(serializers.Serializer):
         return attrs
     
 
+   
     def create(self, validated_data):
-        user = self.context['request'].user      # user nikala request se 
-        cart, _ = Cart.objects.get_or_create(user=user)  # cart m yeh user hai ,nahi hai toh new entry crt m create kr di 
+            
+            user = self.context['request'].user
+            cart, _ = Cart.objects.get_or_create(user=user)
 
-        # validated_data m humare validated items  ,jo ek list of dictionary hai
-        # CartItem ki table yeh items save kerenge 
+            for item in validated_data['validated_items']:
 
-        cart_items = []
-        for item in validated_data['validated_items']:
-            cart_item, created = CartItem.objects.update_or_create(
-                cart=cart,
-                product_id=item['product_id'],
-                defaults={'quantity': item['quantity'],
-                          'price_at_time': item['product_price_at_time']}
-                
-                
-            )
-            cart_items.append(cart_item)
+                CartItem.objects.update_or_create(
+                    cart=cart,
+                    product_id=item['product_id'],
+                    defaults={
+                        'quantity': item['quantity'],
+                        'price_at_time': item['product_price_at_time']
+                    }
+                )
+            return cart   
 
-        return cart_items
     
     def update(self, instance, validated_data):
+       
+        for item in validated_data['validated_items']:
 
-        try:
-            updated_items = []
-            for item in validated_data['validated_items']:
-                cart_item = CartItem.objects.get(cart =instance,product_id =item['product_id'])
-
+            try:
+                cart_item = CartItem.objects.get(cart=instance, product=item['product_id'])
                 cart_item.quantity = item['quantity']
-
                 cart_item.save()
-                updated_items.append(cart_item)
+
+            except CartItem.DoesNotExist:
+                raise serializers.ValidationError("Invalid product in cart")
+
+        return instance  
 
 
-            
-        except CartItem.DoesNotExist:
-            raise serializers.ValidationError("Invalid product in cart")
-        
-        return updated_items
 
 
     

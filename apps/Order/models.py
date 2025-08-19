@@ -8,10 +8,8 @@ class Cart(Baseclass):
 
     user = models.OneToOneField(User,on_delete=models.CASCADE,related_name='cart')
 
-
-
     def __str__(self):
-        return f"Cart of {self.user.username}"
+        return f"Cart of {self.user.full_name}"
     
     
 
@@ -37,16 +35,3 @@ class CartItem(Baseclass):
         if not self.price_at_time:
             self.price_at_time = self.product.price
         super().save(*args, **kwargs)
-
-        
-
-
-
-
-  
-
-
-
-
-
-
