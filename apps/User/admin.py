@@ -8,5 +8,3 @@ admin.site.register(UserProfile)
 admin.site.register(UserAddress)
 
 
-
-# Register your models here.

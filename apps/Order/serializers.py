@@ -1,7 +1,9 @@
 from .models import Cart ,CartItem 
 from rest_framework import serializers 
 from apps.Auth.models import User
+from apps.User.models import UserAddress
 from apps.ProductsManagement.models import Product,Inventory
+from .utils import get_cart_from_cache,set_cart_cache,build_cart_payload
 
 
 class CartItemInputSerializers(serializers.Serializer):
@@ -84,10 +86,6 @@ class AddtoCartItemSerilaizer(serializers.Serializer):
         return instance  
 
 
-
-
-    
-
 class ProductMiniSerializer(serializers.ModelSerializer):
     class Meta:
         model = Product
@@ -120,35 +118,47 @@ class CartItemDetailSerializer(serializers.ModelSerializer):
     def get_total_price(self, obj):
         return   (sum([item.quantity * item.price_at_time for item in obj.cart_item.all()]))
    
+class CheckoutValidateSerializer(serializers.Serializer):
+    cart_id = serializers.IntegerField()
+    shipping_address_id = serializers.IntegerField()
 
+    def validate(self, attrs):
+        cart_id = attrs.get("cart_id")
+        shipping_address_id = attrs.get("shipping_address_id")
+        user = self.context["request"].user
 
+        cached_cart  = get_cart_from_cache(user.id)
 
+        if cached_cart:
 
+            if int(cached_cart["cart"]["id"]) != cart_id:
+
+                raise serializers.VakidationError("Cart ID not found  in cahche")
+        
+            cart_payload  = cached_cart
 
         
-    
-    
+        else:
+
+            cart = Cart.objects.filter(id=cart_id, user_id=user.id).exists()
+            if not cart:
+                raise serializers.ValidationError({"cart_id": "Invalid Cart Id"})
             
-        
+            cart_payload=build_cart_payload(cart)
+            set_cart_cache(user.id,cart_payload)
 
-
-
-
-
-        
-            
-            
-
-            
-
-
-     
-        
-
-        
-        
 
        
-        
+        shipping_address = UserAddress.objects.filter(
+            id=shipping_address_id,
+            user_profile__user=user
+        ).first()
 
-        
+        if not shipping_address:
+            raise serializers.ValidationError({"shipping_address_id": "Invalid Shipping Address"})
+
+     
+        attrs["cart_payload"] = cart_payload
+        attrs["shipping_address"] = shipping_address
+
+        return attrs
