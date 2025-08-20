@@ -3,11 +3,12 @@ from django.shortcuts import render,get_object_or_404
 from rest_framework.views import APIView ,status
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
+from decimal import Decimal
 from django.db import transaction
 from  django.core.cache import cache
-from .serializers import AddtoCartItemSerilaizer,CartItemDetailSerializer
-from .models import CartItem,Cart
-from .utils import get_cart_from_cache,set_cart_cache,delete_cart_cache,decimal_to_str,build_cart_payload
+from .serializers import AddtoCartItemSerilaizer,CheckoutValidateSerializer
+from .models import CartItem,Cart,Order,OrderItem
+from .utils import get_cart_from_cache,set_cart_cache,delete_cart_cache,build_cart_payload
 
 
 class AddtoCartView(APIView):
@@ -140,39 +141,52 @@ class CartClearView(APIView):
         
 
 
+class CheckoutView(APIView):
+    permission_classes = [IsAuthenticated]
 
+    def post(self, request):
+        serializer = CheckoutValidateSerializer(data=request.data, context={"request": request})
+
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        cart_payload = serializer.validated_data["cart_payload"]
+        shipping_address = serializer.validated_data["shipping_address"]
+        user = request.user
+
+        with transaction.atomic():
+            order = Order.objects.create(
+                user=user,
+                shipping_address=shipping_address,
+                total_amount=Decimal(cart_payload["cart"]["total_price"]),
+                status="pending",
+            )
+
+            for item in cart_payload["cart"]["items"]:
+                OrderItem.objects.create(
+                    order=order,
+                    product_id=item["product_id"],
+                    quantity=item["quantity"],
+                    price_at_time=Decimal(item["product_price"]),
+                )
+
+            # Clear cart
+            delete_cart_cache(user.id)
+            Cart.objects.filter(user_id=user.id).delete()
 
         
-        
-
-
-        
-
-        
-
-
-
-
-        
-
-      
-
-
-       
-    
-
-
-     
-
-
-                
-    
-
-
-    
-        
-
-
-
-
-
+        return Response({
+            "message": "Order placed successfully",
+            "order": {
+                "id": order.id,
+                "status": order.status,
+                "total_amount": str(order.total_amount),
+                "shipping_address": {
+                    "id": shipping_address.id,
+                    "line1": shipping_address.address_line_1,
+                    "city": shipping_address.city,
+                    "pincode": shipping_address.postal_code,
+                },
+                "items": cart_payload["cart"]["items"],
+            }
+        }, status=status.HTTP_201_CREATED)

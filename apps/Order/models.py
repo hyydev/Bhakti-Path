@@ -49,7 +49,7 @@ class Order(Baseclass):
     ]
 
     user = models.ForeignKey(User,on_delete=models.CASCADE,related_name='orders')
-    order_number = models.CharField(max_length=20,unique=True)
+    order_number = models.CharField(max_length=20,unique=True,null=True,blank=True)
     status = models.CharField(max_length=250,choices=ORDER_STATUS,default='PENDING')
     shipping_address = models.ForeignKey(UserAddress,on_delete=models.SET_NULL,null=True,blank=True)
     total_amount = models.DecimalField(max_digits=10, decimal_places=2)
@@ -74,7 +74,5 @@ class OrderItem(Baseclass):
         return self.price_at_time * self.quantity
 
      
-    
-
 
 
