@@ -3,11 +3,14 @@ from django.shortcuts import render,get_object_or_404
 from rest_framework.views import APIView ,status
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
+from rest_framework.exceptions import ValidationError
 from decimal import Decimal
+from django.db.models import F
 from django.db import transaction
 from  django.core.cache import cache
 from .serializers import AddtoCartItemSerilaizer,CheckoutValidateSerializer
 from .models import CartItem,Cart,Order,OrderItem
+from apps.ProductsManagement.models import Inventory
 from .utils import get_cart_from_cache,set_cart_cache,delete_cart_cache,build_cart_payload
 
 
@@ -155,6 +158,7 @@ class CheckoutView(APIView):
         user = request.user
 
         with transaction.atomic():
+            # order create
             order = Order.objects.create(
                 user=user,
                 shipping_address=shipping_address,
@@ -163,6 +167,17 @@ class CheckoutView(APIView):
             )
 
             for item in cart_payload["cart"]["items"]:
+
+                # inventory lock and update
+                product_id = item['product_id']
+                qty = item['quantity']
+                inventory = Inventory.objects.select_for_update().get(product_id=product_id)
+                if inventory.quantity < qty :
+                    raise ValidationError({"inventory": f"Not enough stock for product {product_id}"})
+                
+                inventory.quantity = F("quantity") - qty
+                inventory.save()
+                
                 OrderItem.objects.create(
                     order=order,
                     product_id=item["product_id"],

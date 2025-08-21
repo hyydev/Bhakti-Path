@@ -130,13 +130,15 @@ class CheckoutValidateSerializer(serializers.Serializer):
 
         # 🔹 Try to get cart from cache
         cached_cart = get_cart_from_cache(user.id)
-        # import pdb;pdb.set_trace()
+        
 
         if cached_cart:
             cached_id = int(cached_cart["cart"]["id"])
 
             if cached_id != cart_id:
-                # ⚠️ Mismatch → Cache invalidate and rebuild from DB
+
+                # Cache invalidate and rebuild from DB
+
                 delete_cart_cache(user.id)
                 cart = Cart.objects.filter(id=cart_id, user_id=user.id).first()
                 if not cart:
@@ -144,17 +146,20 @@ class CheckoutValidateSerializer(serializers.Serializer):
                 cart_payload = build_cart_payload(cart)
                 set_cart_cache(user.id, cart_payload)
             else:
-                # ✅ Cached cart is valid
+                # Cached cart is valid
                 cart_payload = cached_cart
+
         else:
+
             # 🔹 No cache → Build fresh
+
             cart = Cart.objects.filter(id=cart_id, user_id=user.id).first()
             if not cart:
                 raise serializers.ValidationError({"cart_id": "Invalid Cart Id"})
             cart_payload = build_cart_payload(cart)
             set_cart_cache(user.id, cart_payload)
 
-        # 🔹 Validate Shipping Address
+   
         shipping_address = UserAddress.objects.filter(
             id=shipping_address_id,
             user_profile__user=user
@@ -164,6 +169,7 @@ class CheckoutValidateSerializer(serializers.Serializer):
             raise serializers.ValidationError({"shipping_address_id": "Invalid Shipping Address"})
 
         # 🔹 Add validated data
+        
         attrs["cart_payload"] = cart_payload
         attrs["shipping_address"] = shipping_address
 
