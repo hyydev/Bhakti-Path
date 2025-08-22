@@ -8,7 +8,7 @@ from .services import Payment_services
 
 
 
-class PaymentIntiateView(APIView):
+class PaymentInitiateView(APIView):
 
     def post(self,request):
 
@@ -18,7 +18,7 @@ class PaymentIntiateView(APIView):
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         
         order = serializer.validated_data["order"]
-        method = serializer.validate_data["method"]
+        method = serializer.validated_data["payment_method"]
 
         with transaction.atomic():
 

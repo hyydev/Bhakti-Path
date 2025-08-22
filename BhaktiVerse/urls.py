@@ -46,7 +46,7 @@ urlpatterns = [
     path('auth/', include('apps.Auth.urls')),
     path('product/',include('apps.ProductsManagement.urls')),
     path('order/',include('apps.Order.urls')),
-    path('payments',include('apps.Payments.urls')),
+    path('payments/',include('apps.Payments.urls')),
 
 
 

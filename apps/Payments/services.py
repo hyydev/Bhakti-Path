@@ -9,7 +9,8 @@ class Payment_services:
     def handle_cod(order,payment):
 
         order.status = "PLACED"
-        order.save(update_fields=["status"])
+        order.payment_status = "PAID"
+        order.save(update_fields=["status","payment_status"])
 
         payment.payment_status = "SUCCESS"
         payment.save(update_fields=["payment_status"])
