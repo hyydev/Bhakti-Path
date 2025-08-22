@@ -120,8 +120,9 @@ class CartItemDetailSerializer(serializers.ModelSerializer):
         return   (sum([item.quantity * item.price_at_time for item in obj.cart_item.all()]))
    
 class CheckoutValidateSerializer(serializers.Serializer):
-    cart_id = serializers.IntegerField()
-    shipping_address_id = serializers.IntegerField()
+    cart_id = serializers.IntegerField(required = True)
+    shipping_address_id = serializers.IntegerField(required =True)
+
 
     def validate(self, attrs):
         cart_id = attrs.get("cart_id")
@@ -169,7 +170,6 @@ class CheckoutValidateSerializer(serializers.Serializer):
             raise serializers.ValidationError({"shipping_address_id": "Invalid Shipping Address"})
 
         # 🔹 Add validated data
-        
         attrs["cart_payload"] = cart_payload
         attrs["shipping_address"] = shipping_address
 
