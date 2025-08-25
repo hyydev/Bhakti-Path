@@ -158,6 +158,7 @@ class CheckoutView(APIView):
         user = request.user
 
         with transaction.atomic():
+
             # order create
             order = Order.objects.create(
                 user=user,
@@ -175,7 +176,9 @@ class CheckoutView(APIView):
                 if inventory.quantity < qty :
                     raise ValidationError({"inventory": f"Not enough stock for product {product_id}"})
                 
-                inventory.quantity = F("quantity") - qty
+                # inventory.quantity = F("quantity") - qty
+                inventory.quantity -=qty
+                inventory.is_in_stock = inventory.quantity > 0
                 inventory.save()
                 
                 OrderItem.objects.create(
@@ -205,3 +208,6 @@ class CheckoutView(APIView):
                 "items": cart_payload["cart"]["items"],
             }
         }, status=status.HTTP_201_CREATED)
+
+
+

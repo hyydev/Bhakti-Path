@@ -191,3 +191,13 @@ CACHES = {
         "TIMEOUT": 60 * 60,  # 1 hour TTL
     }
 }
+
+from decouple import config
+
+RAZORPAY_KEY_ID = config("RAZORPAY_KEY_ID")
+RAZORPAY_KEY_SECRET = config("RAZORPAY_KEY_SECRET")
+
+# settings.py
+RAZORPAY_WEBHOOK_SECRET = config("RAZORPAY_WEBHOOK_SECRET")
+
+

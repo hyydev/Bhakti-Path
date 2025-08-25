@@ -7,6 +7,9 @@ class PaymentSerializer(serializers.ModelSerializer):
     
     order_id = serializers.IntegerField(write_only=True)
     payment_method = serializers.ChoiceField(choices=Payment.PAYMENT_METHODS, required=True)
+    payment_status = serializers.CharField(read_only=True)
+    payment_amount = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)
+
 
     class Meta:
         model = Payment
@@ -39,6 +42,8 @@ class PaymentSerializer(serializers.ModelSerializer):
             order=order,
             user=order.user,
             payment_method=validated_data["payment_method"],
-            payment_status="INITIATED",
-            payment_amount=order.total_amount
+            payment_amount=order.total_amount,   
+            payment_status="PENDING"   
         )
+
+

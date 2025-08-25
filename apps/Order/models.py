@@ -47,6 +47,11 @@ class Order(Baseclass):
         ('DELIVERED', 'Delivered'),
         ('CANCELLED', 'Cancelled'),
     ]
+    order_payment_status = [
+        ('PAID','Paid'),
+        ('UNPAID','Unpaid'),
+        ('FAILED','Failed')
+    ]
     
     
     user = models.ForeignKey(User,on_delete=models.CASCADE,related_name='orders')
@@ -56,6 +61,7 @@ class Order(Baseclass):
     total_amount = models.DecimalField(max_digits=10, decimal_places=2)
     payment_status = models.CharField(max_length=20, default='UNPAID')  # UNPAID / PAID / FAILED
     
+  
 
 
 
