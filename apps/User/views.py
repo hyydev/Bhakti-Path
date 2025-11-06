@@ -15,11 +15,11 @@ class UserRegisterView(APIView):
         serializer = UserSerializer(data=request.data)
         if not serializer.is_valid():
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-        else:
-            serializer.save()
-            return Response({
-                "message": "User registered successfully. OTP send"}, 
-                status=status.HTTP_201_CREATED)
+        
+        serializer.save()
+        return Response({
+            "message": "User registered successfully. OTP send"}, 
+             status=status.HTTP_201_CREATED)
         
 
     def get(self, request):
