@@ -12,8 +12,8 @@ class OTPVerificationSerializer(serializers.ModelSerializer):
     """
     Serializer for the OTPVerification model.
     """
-    email = serializers.EmailField(required=True)
-    mobile_number = serializers.CharField(max_length=15, required=True)
+    email = serializers.EmailField(required=False)
+    mobile_number = serializers.CharField(max_length=15, required=False)
     otp_code = serializers.CharField(max_length=6, required=True)
 
     class Meta:
@@ -50,9 +50,7 @@ class OTPVerificationSerializer(serializers.ModelSerializer):
         mobile_number = attrs.get('mobile_number')
 
         otp_obj =OTPVerification.objects.filter(
-            otp_code=otp_code,
-            email=email,
-            mobile_number=mobile_number).first()
+            otp_code=otp_code).first()
 
        
 
