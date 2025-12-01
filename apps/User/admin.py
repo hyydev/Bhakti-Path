@@ -6,5 +6,3 @@ admin.site.register(User)
 admin.site.register(UserProfile)
 
 admin.site.register(UserAddress)
-
-
