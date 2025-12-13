@@ -71,7 +71,11 @@ class UserSerializer(serializers.ModelSerializer):
         user.save()
 
         # OTP generation and sending logic can be added here
-        otp_code = random.randint(100000, 999999)
+        
+        # otp_code = random.randint(100000, 999999)
+
+        # for testing purpose
+        otp_code = 777777
         print(f"OTP for {user.email}: {otp_code}")
 
         # Save OTP to the database

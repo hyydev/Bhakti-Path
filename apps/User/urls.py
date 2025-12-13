@@ -13,7 +13,7 @@ urlpatterns = [
     path("register/", UserRegisterView.as_view(), name="user-register"),
     path("userdetail/<int:user_id>/", UserDetailView.as_view(), name="user-detail"),
     path("userprofile/", AllUserProfileView.as_view(), name="all-user-profile"),
-    path("userprofile/<int:user_id>/", UserProfileView.as_view(), name="user-profile"),
+    path("userprofile/<int:id>/", UserProfileView.as_view(), name="user-profile"),
     path("useraddresses/", UserAddressView.as_view(), name="user-addresses"),
     path(
         "useraddresses/<int:address_id>/",
