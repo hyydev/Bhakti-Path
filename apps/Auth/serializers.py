@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework_simplejwt.exceptions import TokenError
 from random import randint
 import random
 
@@ -138,12 +139,14 @@ class UserlogoutSerializer(serializers.Serializer):
         if not refresh_token:
             raise serializers.ValidationError("Refresh token is required.")
         
-        token=RefreshToken(refresh_token)
-        if not token:
-            raise serializers.ValidationError("Invalid refresh token.")
-        
-        token.blacklist()
+        try:
+            RefreshToken(refresh_token).blacklist()
 
+        except TokenError:
+            raise serializers.ValidationError({
+                "refresh_token": "Invalid or expired refresh token."
+            })
+        
         attrs['refresh_token'] = refresh_token
         return attrs
 
