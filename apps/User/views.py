@@ -91,7 +91,7 @@ class AllUserProfileView(APIView):
 class UserProfileView(APIView):
 
     authentication_classes = [JWTAuthentication]
-    permission_classes = [IsAdminUser, IsAuthenticated]
+    permission_classes = [ IsAuthenticated]
 
     """
     API view to retrieve user profile.
