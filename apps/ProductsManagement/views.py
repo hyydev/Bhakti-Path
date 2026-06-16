@@ -66,7 +66,7 @@ class ProductDetailView(APIView):
 
 class ProductListView(APIView):
     authentication_classes = [JWTAuthentication]
-    permission_classes = [IsAdminUser]
+    permission_classes = []
 
     def get(self, request):
 
