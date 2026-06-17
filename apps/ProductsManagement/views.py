@@ -9,7 +9,7 @@ from rest_framework import filters
 
 
 from .pagination import ProductPagination
-from .serializers import ProductCreateUpdateSerializer,ProductDetailSerializer,ProductImageSerializer,InventorySerializer
+from .serializers import ProductCreateUpdateSerializer,ProductDetailSerializer,ProductImageSerializer,InventorySerializer,CategorySerializer
 from .models import Product, Category , ProductImage,Inventory
 from apps.User.models import User ,UserProfile
 from django.db.models import Q
@@ -167,3 +167,8 @@ class InventoryRetrieveUpdateDestroyAPIView(generics.RetrieveUpdateDestroyAPIVie
     queryset = Inventory.objects.all().select_related('product')
     serializer_class = InventorySerializer 
     
+
+class CategoryListAPIView(generics.ListAPIView):
+    queryset =Category.objects.filter(is_active =True)
+    serializer_class =CategorySerializer
+    permission_classes=[IsAuthenticated]

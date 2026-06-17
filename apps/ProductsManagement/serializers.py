@@ -5,12 +5,14 @@ from django.utils.text import slugify
 
 
 
-class CategorySerilaizer(serializers.ModelSerializer):
+class CategorySerializer(serializers.ModelSerializer):
 
     class Meta:
         model =Category
-        fields = '__all__'
-        read_only_fields = ('id','sku','slug')
+        fields = [
+            "name","slug","description","is_active"
+        ]
+        read_only_fields = ('id','slug','is_active')
 
  
 

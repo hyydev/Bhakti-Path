@@ -1,5 +1,5 @@
 from django.urls import path 
-from .views import ProductCreateUpdateview,ProductListView,ProductDetailView , InventoryListCreateAPIView ,InventoryRetrieveUpdateDestroyAPIView
+from .views import ProductCreateUpdateview,ProductListView,ProductDetailView , InventoryListCreateAPIView ,InventoryRetrieveUpdateDestroyAPIView ,CategoryListAPIView
 
 
 
@@ -14,6 +14,8 @@ path('get-product/<int:id>',ProductDetailView.as_view(),name='Single-product'),
 
 path('inventory/',InventoryListCreateAPIView.as_view(), name='inventory-list-create'),
 path('inventory/<int:pk>/', InventoryRetrieveUpdateDestroyAPIView.as_view(), name='inventory-detail'),
+
+path('category/',CategoryListAPIView.as_view(), name='category-list')
 
 
 ]
