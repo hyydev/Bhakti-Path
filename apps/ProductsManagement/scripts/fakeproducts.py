@@ -18,21 +18,14 @@ from apps.ProductsManagement.models import Product, Category, ProductImage
 fake = Faker()
 
 Category_names = [ 
-    "Mala",
-    "Japa Beads",
-    "Tilak",
-    "Chandan Paste",
-    "Books",
-    "Temple Decor",
-    "Spiritual CDs",
-    "Deity Dresses",
-    "Puja Samagri",
-    "Abhishek Items",
-    "Dry Fruits",
-    "Spiritual Gifts",
-    "Puja Utensils",
-    "Festival Items",
-    "Other"
+
+    "Books & Scriptures",
+    "Puja & Decor",
+    "Bhakti Essentials",
+    "Devotional Clothing",
+    
+
+    
 ]
 
 categories = []

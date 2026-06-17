@@ -10,7 +10,7 @@ class CategorySerializer(serializers.ModelSerializer):
     class Meta:
         model =Category
         fields = [
-            "name","slug","description","is_active"
+            "id","name","slug","description","is_active"
         ]
         read_only_fields = ('id','slug','is_active')
 
