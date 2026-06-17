@@ -47,8 +47,6 @@ class Baseclass(models.Model):
 
     class Meta:
         abstract = True
-        verbose_name = "Base Class"
-
 
 class User(AbstractBaseUser, Baseclass, PermissionsMixin):
     """
