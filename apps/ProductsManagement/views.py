@@ -131,7 +131,16 @@ class ProductListView(APIView):
         serializer = ProductDetailSerializer(result_page, many=True)
         return Response({
             "message": "All product information fetched successfully",
-            "data": serializer.data
+            "pagination": {
+                "count": paginator.page.paginator.count,
+                "total_pages": paginator.page.paginator.num_pages,
+                "current_page": paginator.page.number,
+                "page_size": paginator.get_page_size(request),
+                "next": paginator.get_next_link(),
+                "previous": paginator.get_previous_link(),
+            },
+            "data": serializer.data,
+           
         }, status=status.HTTP_200_OK)
 
 
