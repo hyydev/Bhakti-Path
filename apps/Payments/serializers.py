@@ -46,4 +46,25 @@ class PaymentSerializer(serializers.ModelSerializer):
             payment_status="PENDING"   
         )
 
+class PaymentVerifySerializer(serializers.Serializer):
+    order_id = serializers.IntegerField(required=True)
+    razorpay_payment_id = serializers.CharField(required=True)
+    razorpay_order_id = serializers.CharField(required=True, write_only=True)
+    razorpay_signature = serializers.CharField(required=True, write_only=True)
 
+    def validate_order_id(self, value):
+        if value <= 0:
+            raise serializers.ValidationError("Invalid order ID")
+        return value
+
+    def validate_razorpay_payment_id(self, value):
+        if not value.startswith('pay_'):
+            raise serializers.ValidationError("Invalid Razorpay payment ID format")
+        return value
+
+    def validate_razorpay_order_id(self, value):
+        if not value.startswith('order_'):
+            raise serializers.ValidationError("Invalid Razorpay order ID format")
+        return value
+    
+    

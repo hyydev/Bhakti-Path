@@ -2,12 +2,13 @@ from django.shortcuts import render
 from django.db import transaction
 from rest_framework.views import APIView ,status
 from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated, IsAdminUser
-from .serializers import PaymentSerializer
+from rest_framework.permissions import IsAuthenticated, IsAdminUser,AllowAny
+from .serializers import PaymentSerializer,PaymentVerifySerializer
 from .services import Payment_services
 import razorpay
 from django.conf import settings
 from .models import Payment
+
 
 
 class PaymentInitiateView(APIView):
@@ -52,94 +53,116 @@ class PaymentInitiateView(APIView):
 
 
 
+class RazorpayPaymentVerifyView(APIView):
+    permission_classes = [IsAuthenticated]
 
-# class RazorpayWebhookView(APIView):
-    
-#     def post(self, request):
-#         payload = request.data
-
-#         razorpay_order_id = payload.get("payload", {}).get("payment", {}).get("entity", {}).get("order_id")
-#         razorpay_payment_id = payload.get("payload", {}).get("payment", {}).get("entity", {}).get("id")
-#         razorpay_signature = request.headers.get("X-Razorpay-Signature")
-
-#         # Verify Signature
-#         client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET))
-#         try:
-
-#             client.utility.verify_webhook_signature(
-#                 request.body.decode("utf-8"), 
-#                 razorpay_signature, 
-#                 settings.RAZORPAY_WEBHOOK_SECRET
-#             )
-#             verified = True
-#         except:
-#             verified = False
-
-
-#         # Payment Update service ko call karo
-#         payment = Payment.objects.get(razorpay_order_id=razorpay_order_id)
-#         order = payment.order
-
-
-#         data = Payment_services.handle_razorpay_verify(
-#             order, payment, razorpay_payment_id, razorpay_signature, verified
-
-#         )
-
-#         return Response({
-#             "data":data , 
-#             "status":status.HTTP_200_OK
-#         })
-
-
-
-
-        
-class RazorpayWebhookView(APIView):
-    
     def post(self, request):
-        payload = request.data
-        print("🔔 Incoming Webhook Payload:", payload)   # 👈 yeh add kar
+        # Step 1: Validate request
+        serializer = PaymentVerifySerializer(data=request.data, context={"request": request})
+        serializer.is_valid(raise_exception=True)
+        data = serializer.validated_data
 
-        razorpay_order_id = payload.get("payload", {}).get("payment", {}).get("entity", {}).get("order_id")
-        razorpay_payment_id = payload.get("payload", {}).get("payment", {}).get("entity", {}).get("id")
-        razorpay_signature = request.headers.get("X-Razorpay-Signature")
-        print("🔑 Signature from Header:", razorpay_signature)   # 👈 yeh bhi add kar
+        order_id = data["order_id"]
+        razorpay_payment_id = data["razorpay_payment_id"]
+        razorpay_order_id = data["razorpay_order_id"]
+        razorpay_signature = data["razorpay_signature"]
 
-        # Verify Signature
+        # Step 2: Fetch payment record
+        try:
+            payment = Payment.objects.get(
+                order_id=order_id,
+                razorpay_order_id=razorpay_order_id
+            )
+        except Payment.DoesNotExist:
+            return Response(
+                {"error": "Payment not found"},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        # Step 3: Verify Razorpay signature
         client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET))
+        
+        try:
+            client.utility.verify_payment_signature({
+                "razorpay_order_id": razorpay_order_id,
+                "razorpay_payment_id": razorpay_payment_id,
+                "razorpay_signature": razorpay_signature,
+            })
+            verified = True
+        except:
+            verified = False
+
+        # Step 4: Update via service
+        order = payment.order
+        response_data = Payment_services.handle_razorpay_verify(
+            order, payment, razorpay_payment_id, razorpay_signature, verified
+        )
+
+        # Step 5: Return response
+        if verified:
+            return Response(response_data, status=status.HTTP_200_OK)
+        else:
+            return Response(response_data, status=status.HTTP_400_BAD_REQUEST)
+
+
+class RazorpayWebhookView(APIView):
+    permission_classes = [AllowAny]
+    authentication_classes = []
+
+    def post(self, request):
+        raw_body = request.body.decode("utf-8")
+        signature_header = request.headers.get("X-Razorpay-Signature", "")
+        payload = request.data
+
+        # Log webhook for audit
+        print("Razorpay Webhook received:", payload)
+        print("Signature header:", signature_header)
+
+        # Step 1: Verify webhook signature
+        client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET))
+        
         try:
             client.utility.verify_webhook_signature(
-                request.body.decode("utf-8"), 
-                razorpay_signature, 
+                raw_body,
+                signature_header,
                 settings.RAZORPAY_WEBHOOK_SECRET
             )
             verified = True
-            print("✅ Webhook Signature Verified")
+            print("Webhook signature verified")
         except Exception as e:
             verified = False
-            print("❌ Webhook Verification Failed:", str(e))
+            print("Webhook verification failed:", str(e))
+            return Response(
+                {"error": "invalid_signature"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
 
-        # Payment Update service ko call karo
+        # Step 2: Extract payment details from payload
+        razorpay_order_id = payload.get("payload", {}).get("payment", {}).get("entity", {}).get("order_id")
+        razorpay_payment_id = payload.get("payload", {}).get("payment", {}).get("entity", {}).get("id")
+
+        if not razorpay_order_id:
+            return Response(
+                {"error": "missing_order_id"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Step 3: Fetch payment record
         try:
             payment = Payment.objects.get(razorpay_order_id=razorpay_order_id)
             order = payment.order
         except Payment.DoesNotExist:
-            print("⚠️ Payment not found for order:", razorpay_order_id)
-            return Response({"error": "Payment not found"}, status=status.HTTP_404_NOT_FOUND)
+            print("Payment not found for razorpay_order_id:", razorpay_order_id)
+            return Response(
+                {"error": "Payment not found"},
+                status=status.HTTP_404_NOT_FOUND
+            )
 
-        data = Payment_services.handle_razorpay_verify(
+        # Step 4: Update via service
+        razorpay_signature = payload.get("payload", {}).get("payment", {}).get("entity", {}).get("signature", signature_header)
+        
+        result = Payment_services.handle_razorpay_verify(
             order, payment, razorpay_payment_id, razorpay_signature, verified
         )
 
-        return Response({
-            "data": data, 
-            "status": status.HTTP_200_OK
-        })
-
-
-   
-
-    
-
-
+        return Response({"data": result}, status=status.HTTP_200_OK)
