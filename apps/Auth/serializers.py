@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.exceptions import TokenError
+from django.utils import timezone
 from random import randint
 import random
 
@@ -13,7 +14,7 @@ class OTPVerificationSerializer(serializers.ModelSerializer):
     """
     Serializer for the OTPVerification model.
     """
-    email = serializers.EmailField(required=False)
+    email = serializers.EmailField(required=True)
     mobile_number = serializers.CharField(max_length=15, required=False)
     otp_code = serializers.CharField(max_length=6, required=True)
 
@@ -44,35 +45,44 @@ class OTPVerificationSerializer(serializers.ModelSerializer):
     def validate(self,attrs):
         """
         Validate otp_code ,email and mobile_number and check otp_code is correct or not
+
         """
-
-        otp_code =attrs.get('otp_code')
-        email = attrs.get('email')
-        mobile_number = attrs.get('mobile_number')
-
-        otp_obj =OTPVerification.objects.filter(
-            otp_code=otp_code).first()
+        email = attrs["email"]
+        otp_code = attrs["otp_code"]
+        
 
        
+    
 
-        if not otp_obj:
-            raise serializers.ValidationError("Invalid OTP code or email or mobile number.")
+        otp_obj = (
+            OTPVerification.objects
+            .select_related("user")
+            .filter(
+                user__email=email,
+                otp_code=otp_code
+            )
+            .first()
+        )
+
         
-        user = otp_obj.user
 
-        if not user:
-            raise serializers.ValidationError("User not found.")
 
-        if user.is_verified:
-            raise serializers.ValidationError("User is already verified.")
-        
+        if otp_obj is None:
+            raise serializers.ValidationError(
+                "Invalid OTP."
+            )
 
-        user.is_verified = True
-        user.save()
+        if otp_obj.expired_at < timezone.now():
+            raise serializers.ValidationError(
+                "OTP has expired."
+            )
 
-        otp_obj.delete()
+        if otp_obj.user.is_verified:
+            raise serializers.ValidationError(
+                "User already verified."
+            )
 
-        attrs['otp_obj'] = otp_obj
+        attrs["otp_obj"] = otp_obj
 
         return attrs
     
@@ -248,8 +258,6 @@ class ResetPasswordSerializer(serializers.Serializer):
         attrs['user'] = user
         return attrs
     
-    
-
     
 
 

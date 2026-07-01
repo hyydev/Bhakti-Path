@@ -1,7 +1,10 @@
 from rest_framework import serializers
 from .models import User, UserProfile, UserAddress
 from apps.Auth.models import OTPVerification
+from django.utils import timezone
+from datetime import timedelta
 import random
+
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -85,7 +88,7 @@ class UserSerializer(serializers.ModelSerializer):
             email=user.email,
             mobile_number=user.mobile_number,
             attempt_count=0,
-            expired_at=None,  # Set the expiration time as needed
+            expired_at=timezone.now() + timedelta(minutes=5),
             is_verified=False,
         )
         otp_verification.save()

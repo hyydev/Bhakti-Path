@@ -3,6 +3,7 @@ from rest_framework.views import APIView ,status
 from rest_framework.response import Response
 from .serializers import OTPVerificationSerializer, UserloginSerializer ,UserlogoutSerializer ,ForgetPasswordSerializer ,ResetPasswordSerializer ,VerifyResetOtpSerializer
 from .models import OTPVerification
+from django.db import transaction
 
 
 
@@ -15,9 +16,19 @@ class VerifyOtpView(APIView):
         if not serializer.is_valid():
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         
-        otp_obj = serializer.validated_data['otp_obj']
-        otp_obj.is_verified = True
-        otp_obj.save()
+        otp_obj = serializer.validated_data["otp_obj"]
+
+        with transaction.atomic():
+
+            user = otp_obj.user
+
+            user.is_verified = True
+
+            user.save(
+                update_fields=["is_verified"]
+            )
+
+            otp_obj.delete()
         
         return Response({
             "message": "OTP verified successfully",
