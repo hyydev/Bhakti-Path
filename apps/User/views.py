@@ -97,42 +97,35 @@ class UserProfileView(APIView):
     API view to retrieve user profile.
     """
 
-    def get(self, request, id):
-        user = User.objects.get(id=id)
-        if not user:
+    def get(self, request):
+        user = request.user  # From JWT token
+        
+        if not hasattr(user, 'profile'):
             return Response(
-                {"message": "User not found"}, status=status.HTTP_404_NOT_FOUND
+                {"message": "User profile not found"},
+                status=status.HTTP_404_NOT_FOUND
             )
-
-        if request.user != user:
-            return Response(
-                {"message": "You are not authorized to view this profile"},
-                status=status.HTTP_403_FORBIDDEN,
-            )
-
+       
         serializer = UserProfileSerializer(user.profile)
+        
         return Response(
             {"message": "User profile fetched successfully", "data": serializer.data},
             status=status.HTTP_200_OK,
         )
 
-    def patch(self, request, id):
+    def patch(self, request):
         """
         API view to update user profile.
+
         """
-
-        user = User.objects.get(id=id)
-        if not user:
+        user = request.user  # From JWT token
+        
+        if not hasattr(user, 'profile'):
             return Response(
-                {"message": "User not found"}, status=status.HTTP_404_NOT_FOUND
+                {"message": "User profile not found"},
+                status=status.HTTP_404_NOT_FOUND
             )
-
-        if request.user != user:
-            return Response(
-                {"message": "You are not authorized to update this profile"},
-                status=status.HTTP_403_FORBIDDEN,
-            )
-
+        
         serilaizer = UserProfileSerializer(
             user.profile, data=request.data, partial=True
         )
