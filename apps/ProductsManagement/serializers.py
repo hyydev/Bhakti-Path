@@ -31,7 +31,8 @@ class ProductBasicInfoSerializer(serializers.Serializer):
     sku = serializers.CharField(max_length =100)
     description = serializers.CharField()
     product_type = serializers.CharField()
-    category = serializers.PrimaryKeyRelatedField(queryset=Category.objects.all(), allow_null=True)
+    # category = serializers.PrimaryKeyRelatedField(queryset=Category.objects.all(), allow_null=True)
+    category=CategorySerializer()
 
 
 
@@ -156,14 +157,7 @@ class ProductDetailSerializer(serializers.Serializer):
 
 
     def get_basic_info(self,obj):
-        category_obj = obj.category
-        if isinstance(category_obj, int):
-            try:
-                category_obj = Category.objects.get(pk=category_obj)
-            except Category.DoesNotExist:
-                category_obj = None
-    
-
+        
         return ProductBasicInfoSerializer({
             'title': obj.title,
             'slug': obj.slug,

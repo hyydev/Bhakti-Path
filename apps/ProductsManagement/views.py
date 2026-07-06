@@ -53,7 +53,7 @@ class ProductCreateUpdateview(APIView):
 
 class ProductDetailView(APIView):
     authentication_classes = [JWTAuthentication]
-    permission_classes = [IsAuthenticated]
+    permission_classes = []
 
     def get(self, request, id):
         product = get_object_or_404(Product, id=id)
@@ -180,4 +180,4 @@ class InventoryRetrieveUpdateDestroyAPIView(generics.RetrieveUpdateDestroyAPIVie
 class CategoryListAPIView(generics.ListAPIView):
     queryset =Category.objects.filter(is_active =True)
     serializer_class =CategorySerializer
-    permission_classes=[IsAuthenticated]
+    permission_classes=[]
