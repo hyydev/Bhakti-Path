@@ -1,15 +1,20 @@
-from .models import Cart ,CartItem 
-from rest_framework import serializers 
+from .models import Cart, CartItem, Order
+from rest_framework import serializers
 from apps.Auth.models import User
 from apps.User.models import UserAddress
-from apps.ProductsManagement.models import Product,Inventory
+from apps.ProductsManagement.models import Product, Inventory
 from decimal import Decimal
-from .utils import get_cart_from_cache,set_cart_cache,build_cart_payload,delete_cart_cache
+from .utils import (
+    get_cart_from_cache,
+    set_cart_cache,
+    build_cart_payload,
+    delete_cart_cache,
+)
 
 
 class CartItemInputSerializers(serializers.Serializer):
-    product_id = serializers.IntegerField(required =True)
-    quantity = serializers.IntegerField(required =True)
+    product_id = serializers.IntegerField(required=True)
+    quantity = serializers.IntegerField(required=True)
 
 
 class AddtoCartItemSerilaizer(serializers.Serializer):
@@ -18,81 +23,78 @@ class AddtoCartItemSerilaizer(serializers.Serializer):
     def validate(self, attrs):
 
         validated_items = []
-        for item in attrs['items']:
-             
-            if item['quantity'] <= 0:
+        for item in attrs["items"]:
+
+            if item["quantity"] <= 0:
                 raise serializers.ValidationError("Quantity must be greater than 0")
 
             try:
-                product = Product.objects.get(id=item['product_id'])
+                product = Product.objects.get(id=item["product_id"])
             except Product.DoesNotExist:
-                raise serializers.ValidationError(f"Product with id {item['product_id']} not found")
+                raise serializers.ValidationError(
+                    f"Product with id {item['product_id']} not found"
+                )
 
             if not product:
                 raise serializers.ValidationError("Product not found")
-            
-            product_in_inventory = Inventory.objects.filter(product=product).first()
 
+            product_in_inventory = Inventory.objects.filter(product=product).first()
 
             if not product_in_inventory:
                 raise serializers.ValidationError("Product not found in inventory")
-            
-            if product_in_inventory.quantity < item['quantity']:
+
+            if product_in_inventory.quantity < item["quantity"]:
                 raise serializers.ValidationError("Not enough quantity in inventory")
-            
-           
-            
 
-            validated_items.append({
-                'product_id': item['product_id'],
-                'quantity': item['quantity'],
-                'product_price_at_time': product.price
-            })
+            validated_items.append(
+                {
+                    "product_id": item["product_id"],
+                    "quantity": item["quantity"],
+                    "product_price_at_time": product.price,
+                }
+            )
 
-
-        
-        attrs['validated_items']= validated_items
+        attrs["validated_items"] = validated_items
         return attrs
-    
 
-   
     def create(self, validated_data):
-            
-            user = self.context['request'].user
-            cart, _ = Cart.objects.get_or_create(user=user)
 
-            for item in validated_data['validated_items']:
+        user = self.context["request"].user
+        cart, _ = Cart.objects.get_or_create(user=user)
 
-                CartItem.objects.update_or_create(
-                    cart=cart,
-                    product_id=item['product_id'],
-                    defaults={
-                        'quantity': item['quantity'],
-                        'price_at_time': item['product_price_at_time']
-                    }
-                )
-            return cart   
+        for item in validated_data["validated_items"]:
 
-    
+            CartItem.objects.update_or_create(
+                cart=cart,
+                product_id=item["product_id"],
+                defaults={
+                    "quantity": item["quantity"],
+                    "price_at_time": item["product_price_at_time"],
+                },
+            )
+        return cart
+
     def update(self, instance, validated_data):
-       
-        for item in validated_data['validated_items']:
+
+        for item in validated_data["validated_items"]:
 
             try:
-                cart_item = CartItem.objects.get(cart=instance, product_id=item['product_id'])
-                cart_item.quantity = item['quantity']
+                cart_item = CartItem.objects.get(
+                    cart=instance, product_id=item["product_id"]
+                )
+                cart_item.quantity = item["quantity"]
                 cart_item.save()
 
             except CartItem.DoesNotExist:
                 raise serializers.ValidationError("Invalid product in cart")
 
-        return instance  
+        return instance
 
 
 class ProductMiniSerializer(serializers.ModelSerializer):
     class Meta:
         model = Product
-        fields = ['id', 'title', 'price']
+        fields = ["id", "title", "price"]
 
 
 class CartItemSerializer(serializers.ModelSerializer):
@@ -102,29 +104,28 @@ class CartItemSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = CartItem
-        fields = ['id', 'product', 'quantity', 'price_at_time','total_price']
+        fields = ["id", "product", "quantity", "price_at_time", "total_price"]
 
     def get_total_price(self, obj):
         return obj.quantity * obj.price_at_time
-    
+
 
 class CartItemDetailSerializer(serializers.ModelSerializer):
     cart_id = serializers.IntegerField(source="id")
-    items =CartItemSerializer(many=True,source='cart_item',read_only=True)
-    total_price = serializers.SerializerMethodField(read_only =True)
-    
+    items = CartItemSerializer(many=True, source="cart_item", read_only=True)
+    total_price = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = Cart
-        fields = ['cart_id','total_price', 'items' ]
+        fields = ["cart_id", "total_price", "items"]
 
     def get_total_price(self, obj):
-        return   (sum([item.quantity * item.price_at_time for item in obj.cart_item.all()]))
-   
-class CheckoutValidateSerializer(serializers.Serializer):
-    cart_id = serializers.IntegerField(required = True)
-    shipping_address_id = serializers.IntegerField(required =True)
+        return sum([item.quantity * item.price_at_time for item in obj.cart_item.all()])
 
+
+class CheckoutValidateSerializer(serializers.Serializer):
+    cart_id = serializers.IntegerField(required=True)
+    shipping_address_id = serializers.IntegerField(required=True)
 
     def validate(self, attrs):
         cart_id = attrs.get("cart_id")
@@ -133,7 +134,6 @@ class CheckoutValidateSerializer(serializers.Serializer):
 
         # 🔹 Try to get cart from cache
         cached_cart = get_cart_from_cache(user.id)
-        
 
         if cached_cart:
             cached_id = int(cached_cart["cart"]["id"])
@@ -162,17 +162,76 @@ class CheckoutValidateSerializer(serializers.Serializer):
             cart_payload = build_cart_payload(cart)
             set_cart_cache(user.id, cart_payload)
 
-   
         shipping_address = UserAddress.objects.filter(
-            id=shipping_address_id,
-            user_profile__user=user
+            id=shipping_address_id, user_profile__user=user
         ).first()
 
         if not shipping_address:
-            raise serializers.ValidationError({"shipping_address_id": "Invalid Shipping Address"})
+            raise serializers.ValidationError(
+                {"shipping_address_id": "Invalid Shipping Address"}
+            )
 
         # 🔹 Add validated data
         attrs["cart_payload"] = cart_payload
         attrs["shipping_address"] = shipping_address
 
         return attrs
+
+
+# apps/Order/serializers.py mein existing imports ke saath yeh add karo:
+
+
+
+
+class CancelOrderSerializer(serializers.Serializer):
+    """
+    Cancel order ke liye request validate karta hai.
+    order_id URL se aata hai — sirf ownership + status check karta hai.
+    """
+
+    def validate(self, attrs):
+        request = self.context["request"]
+        order_id = self.context["order_id"]   # URL se view pass karega
+        user = request.user
+
+        # Order fetch karo — user ka hi hona chahiye
+        try:
+            order = Order.objects.select_related(
+                "user",
+                "shipping_address"
+            ).prefetch_related(
+                "order_items__product__inventory"  # inventory restore ke liye
+            ).get(
+                id=order_id,
+                user=user               # ← IDOR protection — sirf apna order
+            )
+        except Order.DoesNotExist:
+            raise serializers.ValidationError(
+                {"order": "Order not found or does not belong to you."}
+            )
+
+        # Sirf PENDING orders cancel ho sakte hain
+        # PLACED, SHIPPED, DELIVERED cancel nahi hoge
+        CANCELLABLE_STATUSES = ["pending"]
+        if order.status not in CANCELLABLE_STATUSES:
+            raise serializers.ValidationError({
+                "status": (
+                    f"Order cannot be cancelled. "
+                    f"Current status: '{order.status}'. "
+                    f"Only pending orders can be cancelled."
+                )
+            })
+
+        # Payment already SUCCESS ho gayi toh cancel nahi
+        if order.payment_status == "PAID":
+            raise serializers.ValidationError({
+                "payment": "Order is already paid. Please contact support for refund."
+            })
+
+        attrs["order"] = order
+        return attrs
+   
+     
+
+    
+      
