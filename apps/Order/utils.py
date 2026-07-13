@@ -60,3 +60,11 @@ def set_cart_cache(user_id: int, payload: dict):
 
 def delete_cart_cache(user_id: int):
     cache.delete(cart_cache_key(user_id))
+
+
+
+# Order number 
+import uuid
+
+def generate_order_number():
+    return f"BV-{uuid.uuid4().hex[:8].upper()}"

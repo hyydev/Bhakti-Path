@@ -19,6 +19,9 @@ class AddtoCartItemSerilaizer(serializers.Serializer):
 
         validated_items = []
         for item in attrs['items']:
+             
+            if item['quantity'] <= 0:
+                raise serializers.ValidationError("Quantity must be greater than 0")
 
             try:
                 product = Product.objects.get(id=item['product_id'])
@@ -37,8 +40,7 @@ class AddtoCartItemSerilaizer(serializers.Serializer):
             if product_in_inventory.quantity < item['quantity']:
                 raise serializers.ValidationError("Not enough quantity in inventory")
             
-            if item['quantity'] <= 0:
-                raise serializers.ValidationError("Quantity must be greater than 0")
+           
             
 
             validated_items.append({
@@ -77,7 +79,7 @@ class AddtoCartItemSerilaizer(serializers.Serializer):
         for item in validated_data['validated_items']:
 
             try:
-                cart_item = CartItem.objects.get(cart=instance, product=item['product_id'])
+                cart_item = CartItem.objects.get(cart=instance, product_id=item['product_id'])
                 cart_item.quantity = item['quantity']
                 cart_item.save()
 
