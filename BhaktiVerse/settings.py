@@ -14,6 +14,50 @@ from datetime import timedelta
 from pathlib import Path
 from decouple import config 
 
+## Sentry 
+
+import sentry_sdk
+from sentry_sdk.integrations.django import DjangoIntegration
+from sentry_sdk.integrations.redis import RedisIntegration
+
+
+SENTRY_DSN = config('SENTRY_DSN', default='')
+
+# Sirf DSN available hone pe initialize karo
+# Dev mein DSN empty rakh sakte ho → Sentry disable rahega
+if SENTRY_DSN:
+    sentry_sdk.init(
+        dsn=SENTRY_DSN,
+
+        integrations=[
+            DjangoIntegration(
+                # Database queries bhi track karo
+                transaction_style='url',
+            ),
+            RedisIntegration(),   # ← Redis errors bhi capture
+        ],
+
+        # Kitne % requests trace karo performance ke liye
+        # 1.0 = 100% (dev mein theek hai)
+        # 0.1 = 10% (production mein — server pe load kam)
+        traces_sample_rate=config(
+            'SENTRY_TRACES_SAMPLE_RATE',
+            default=1.0,
+            cast=float
+        ),
+
+        # Environment tag — dashboard mein filter kar sako
+        # dev errors alag, prod errors alag dikhenge
+        environment=config('SENTRY_ENVIRONMENT', default='development'),
+
+        # PII (Personal Identifiable Information) send mat karo
+        # User emails, IPs automatically strip ho jaayengi
+        send_default_pii=False,
+    )
+
+
+
+#___________________________________________________#__________________________________________________#___________________________
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -201,6 +245,13 @@ RAZORPAY_KEY_SECRET = config("RAZORPAY_KEY_SECRET")
 
 # settings.py
 RAZORPAY_WEBHOOK_SECRET = config("RAZORPAY_WEBHOOK_SECRET")
+
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+
+# SendGrid credentials
+SENDGRID_API_KEY = config('SENDGRID_API_KEY')
+DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='noreply@bhaktipath.com')
+DEFAULT_FROM_NAME = config('DEFAULT_FROM_NAME', default='BhaktiPath')
 
 
 #cors-headers

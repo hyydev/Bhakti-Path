@@ -2,9 +2,12 @@ from rest_framework import serializers
 from .models import User, UserProfile, UserAddress
 from apps.Auth.models import OTPVerification
 from django.utils import timezone
+from .email_utils import send_otp_email
 from datetime import timedelta
+import logging
 import random
 
+logger = logging.getLogger(__name__)
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -73,15 +76,9 @@ class UserSerializer(serializers.ModelSerializer):
         user.is_verified = False
         user.save()
 
-        # OTP generation and sending logic can be added here
-        
-        # otp_code = random.randint(100000, 999999)
+        # Step 2: Random OTP
+        otp_code = str(random.randint(100000, 999999))
 
-        # for testing purpose
-        otp_code = 777777
-        print(f"OTP for {user.email}: {otp_code}")
-
-        # Save OTP to the database
         otp_verification = OTPVerification.objects.create(
             user=user,
             otp_code=otp_code,
@@ -92,6 +89,16 @@ class UserSerializer(serializers.ModelSerializer):
             is_verified=False,
         )
         otp_verification.save()
+
+        # Step 4: Email bhejo
+        email_sent = send_otp_email(
+            user_email=user.email,
+            user_name=user.full_name,
+            otp_code=otp_code,
+        )
+
+        if not email_sent:
+            logger.error(f"OTP email failed for {user.email}")
 
         return user
 

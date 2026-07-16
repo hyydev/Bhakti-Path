@@ -2,6 +2,8 @@ from rest_framework import serializers
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.exceptions import TokenError
 from django.utils import timezone
+from datetime import timedelta
+from apps.User.email_utils import send_password_reset_email
 from random import randint
 import random
 
@@ -14,17 +16,21 @@ class OTPVerificationSerializer(serializers.ModelSerializer):
     """
     Serializer for the OTPVerification model.
     """
+
     email = serializers.EmailField(required=True)
     mobile_number = serializers.CharField(max_length=15, required=False)
     otp_code = serializers.CharField(max_length=6, required=True)
 
     class Meta:
         model = OTPVerification
-        fields = ['id', 'user', 'email', 'mobile_number', 'otp_code',]
-        extra_kwargs = {
-        'user': {'read_only': True}  
-    }
-
+        fields = [
+            "id",
+            "user",
+            "email",
+            "mobile_number",
+            "otp_code",
+        ]
+        extra_kwargs = {"user": {"read_only": True}}
 
     def validate_otp_code(self, value):
         if len(value) != 6:
@@ -32,7 +38,6 @@ class OTPVerificationSerializer(serializers.ModelSerializer):
         if not value.isdigit():
             raise serializers.ValidationError("OTP code must contain only digits.")
         return value
-    
 
     def validate_mobile_number(self, value):
         if len(value) != 10:
@@ -40,63 +45,44 @@ class OTPVerificationSerializer(serializers.ModelSerializer):
         if not value.isdigit():
             raise serializers.ValidationError("Mobile number must contain only digits.")
         return value
-    
-    
-    def validate(self,attrs):
+
+    def validate(self, attrs):
         """
         Validate otp_code ,email and mobile_number and check otp_code is correct or not
 
         """
         email = attrs["email"]
         otp_code = attrs["otp_code"]
-        
-
-       
-    
 
         otp_obj = (
-            OTPVerification.objects
-            .select_related("user")
-            .filter(
-                user__email=email,
-                otp_code=otp_code
-            )
+            OTPVerification.objects.select_related("user")
+            .filter(user__email=email, otp_code=otp_code)
             .first()
         )
-
-        
-
-
-        if otp_obj is None:
+        if not otp_obj:
             raise serializers.ValidationError(
-                "Invalid OTP."
+                {"email": "No pending OTP found for this email."}
             )
 
         if otp_obj.expired_at < timezone.now():
             raise serializers.ValidationError(
-                "OTP has expired."
+                {"otp_code": "OTP has expired. Please request a new one."}
             )
 
         if otp_obj.user.is_verified:
-            raise serializers.ValidationError(
-                "User already verified."
-            )
+            raise serializers.ValidationError("User already verified.")
 
         attrs["otp_obj"] = otp_obj
 
         return attrs
-    
 
 
-        
-
-    
 class UserloginSerializer(serializers.Serializer):
     """
     Serializer for user login with Jwt authentication.
     """
 
-    email_or_mobile_number = serializers.CharField(required=True,write_only=True)
+    email_or_mobile_number = serializers.CharField(required=True, write_only=True)
     password = serializers.CharField(required=True, write_only=True)
     access_token = serializers.CharField(read_only=True)
     refresh_token = serializers.CharField(read_only=True)
@@ -105,10 +91,9 @@ class UserloginSerializer(serializers.Serializer):
     is_verified = serializers.BooleanField(read_only=True)
     is_active = serializers.BooleanField(read_only=True)
 
-    
     def validate(self, attrs):
-        email_or_mobile_number = attrs.get('email_or_mobile_number')
-        password =attrs.get('password')
+        email_or_mobile_number = attrs.get("email_or_mobile_number")
+        password = attrs.get("password")
 
         user = User.objects.filter(
             Q(email=email_or_mobile_number) | Q(mobile_number=email_or_mobile_number)
@@ -116,48 +101,47 @@ class UserloginSerializer(serializers.Serializer):
 
         if not user:
             raise serializers.ValidationError("User not found.")
-        
+
         if not user.check_password(password):
             raise serializers.ValidationError("Invalid password.")
-        
+
         if not user.is_verified:
             raise serializers.ValidationError("User is not verified")
-        
+
         if not user.is_active:
             user.is_active = True
             user.save()
 
         refresh = RefreshToken.for_user(user)
-   
-        attrs['access_token'] = str(refresh.access_token)
-        attrs['refresh_token'] = str(refresh)
-        attrs['is_verified'] = user.is_verified
-        attrs['is_active'] = user.is_active
+
+        attrs["access_token"] = str(refresh.access_token)
+        attrs["refresh_token"] = str(refresh)
+        attrs["is_verified"] = user.is_verified
+        attrs["is_active"] = user.is_active
         return attrs
-    
-    
-        
+
 
 class UserlogoutSerializer(serializers.Serializer):
     """
     Serializer for user logout with Jwt authentication.
     """
+
     refresh_token = serializers.CharField(required=True, write_only=True)
 
-    def validate(self,attrs):
-        refresh_token=(attrs.get('refresh_token'))
+    def validate(self, attrs):
+        refresh_token = attrs.get("refresh_token")
         if not refresh_token:
             raise serializers.ValidationError("Refresh token is required.")
-        
+
         try:
             RefreshToken(refresh_token).blacklist()
 
         except TokenError:
-            raise serializers.ValidationError({
-                "refresh_token": "Invalid or expired refresh token."
-            })
-        
-        attrs['refresh_token'] = refresh_token
+            raise serializers.ValidationError(
+                {"refresh_token": "Invalid or expired refresh token."}
+            )
+
+        attrs["refresh_token"] = refresh_token
         return attrs
 
 
@@ -165,84 +149,108 @@ class ForgetPasswordSerializer(serializers.Serializer):
     """
     Serializer for forget password.
     """
+
     email = serializers.EmailField(required=True)
 
     """Validate email and check if user exists with that email.
     """
 
-    def validate_email(self,value):
-        user =User.objects.filter(email=value).first()
+    def validate_email(self, value):
+        user = User.objects.filter(email=value).first()
         if not user:
             raise serializers.ValidationError("User with this email does not exist.")
         return value
-    
-    
-    """ Generate Otp and save it in OTPVerification model."""
-    def create(self,validated_data):
-        email = validated_data.get('email')
-        user = User.objects.get(email=email)
-        
 
+    """ Generate Otp and save it in OTPVerification model."""
+    # Top pe import add karo:
+
+
+    def create(self, validated_data):
+        email = validated_data.get("email")
+        user = User.objects.get(email=email)
+
+        # Purana pending OTP delete karo
+        OTPVerification.objects.filter(user=user, is_verified=False).delete()
+
+        # Naya OTP
         otp_code = str(random.randint(100000, 999999))
-        otp_obj =OTPVerification.objects.create(
+
+        OTPVerification.objects.create(
             user=user,
             email=email,
             mobile_number=user.mobile_number,
-            otp_code=otp_code
+            otp_code=otp_code,
+            expired_at=timezone.now() + timedelta(minutes=10),
+            attempt_count=0,
+            is_verified=False,
         )
-        otp_obj.save()
-        # Here you can add logic to send the OTP to the user's email or mobile number
-        return otp_obj
-    
+
+        # Email bhejo
+        send_password_reset_email(
+            user_email=user.email,
+            user_name=user.full_name,
+            otp_code=otp_code,
+        )
+
+        return user
+
 
 class VerifyResetOtpSerializer(serializers.Serializer):
     """
     Serilaizer for verify otp.
     """
-    
+
     otp_code = serializers.CharField(max_length=6, required=True)
     email = serializers.EmailField(required=True)
     mobile_number = serializers.CharField(max_length=15, required=True)
 
     def validate(self, attrs):
-        otp_code = attrs.get('otp_code')
-        email = attrs.get('email')
-        mobile_number = attrs.get('mobile_number')
+        otp_code = attrs.get("otp_code")
+        email = attrs.get("email")
+        mobile_number = attrs.get("mobile_number")
 
         otp_obj = OTPVerification.objects.filter(
-            otp_code=otp_code,
-            email=email,
-            mobile_number=mobile_number
+            otp_code=otp_code, email=email, mobile_number=mobile_number
         ).first()
 
         if not otp_obj:
-            raise serializers.ValidationError("Invalid OTP code or email or mobile number.")
+            raise serializers.ValidationError(
+                "Invalid OTP code or email or mobile number."
+            )
 
         if otp_obj.is_verified:
             raise serializers.ValidationError("OTP is already verified.")
 
-        attrs['otp_obj'] = otp_obj
+        attrs["otp_obj"] = otp_obj
         return attrs
-    
-    
+
+
 class ResetPasswordSerializer(serializers.Serializer):
-    """ 
+    """
     Serializer for reset password."""
 
-    otp_code =serializers.CharField(max_length=6, required=True)
+    otp_code = serializers.CharField(max_length=6, required=True)
     new_password = serializers.CharField(max_length=255, required=True, write_only=True)
-    confirm_password = serializers.CharField(max_length=255, required=True, write_only=True)
+    confirm_password = serializers.CharField(
+        max_length=255, required=True, write_only=True
+    )
 
-    def validate(self,attrs):
-        otp_code =attrs.get('otp_code')
-        new_password = attrs.get('new_password')
-        confirm_password = attrs.get('confirm_password')
+    def validate(self, attrs):
+        otp_code = attrs.get("otp_code")
+        new_password = attrs.get("new_password")
+        confirm_password = attrs.get("confirm_password")
         if new_password != confirm_password:
-            raise serializers.ValidationError("New password and confirm password do not match.")
+            raise serializers.ValidationError(
+                "New password and confirm password do not match."
+            )
         if len(new_password) < 8:
-            raise serializers.ValidationError("Password must be at least 8 characters long.")
+            raise serializers.ValidationError(
+                "Password must be at least 8 characters long."
+            )
         if not new_password.isalnum():
-            raise serializers.ValidationError("Password must contain only alphanumeric characters.")
+            raise serializers.ValidationError(
+                "Password must contain only alphanumeric characters."
+            )
         otp_obj = OTPVerification.objects.filter(otp_code=otp_code).first()
         if not otp_obj:
             raise serializers.ValidationError("Invalid OTP code.")
@@ -255,21 +263,5 @@ class ResetPasswordSerializer(serializers.Serializer):
         user.save()
         otp_obj.delete()
 
-        attrs['user'] = user
+        attrs["user"] = user
         return attrs
-    
-    
-
-
-       
-
-
-        
-
-        
-        
-
-    
-
-
-    
