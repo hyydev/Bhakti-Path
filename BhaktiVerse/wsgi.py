@@ -1,16 +1,14 @@
-"""
-WSGI config for BhaktiVerse project.
-
-It exposes the WSGI callable as a module-level variable named ``application``.
-
-For more information on this file, see
-https://docs.djangoproject.com/en/4.2/howto/deployment/wsgi/
-"""
+# BhaktiVerse/wsgi.py
 
 import os
-
 from django.core.wsgi import get_wsgi_application
 
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'BhaktiVerse.settings')
+# wsgi.py production server use karta hai (Gunicorn)
+# Isliye default production hai
+# Docker mein bhi DJANGO_SETTINGS_MODULE env var se override hoga
+os.environ.setdefault(
+    'DJANGO_SETTINGS_MODULE',
+    'BhaktiVerse.settings.production'
+)
 
 application = get_wsgi_application()
