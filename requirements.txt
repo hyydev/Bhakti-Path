@@ -31,3 +31,31 @@ uritemplate==4.2.0
 urllib3==2.7.0
 wheel==0.42.0
 sentry-sdk==1.45.0
+psycopg2-binary==2.9.10
+redis==5.0.1
+# ─── Cache ───
+django-redis==5.4.0
+redis==5.0.1
+
+# ─── CORS ───
+django-cors-headers==4.3.1
+
+# ─── Filtering ───
+django-filter==24.2
+
+# ─── Static Files ───
+whitenoise==6.6.0
+
+# ─── Production Server ───
+gunicorn==21.2.0
+
+# ─── Payment ───
+razorpay==1.4.2
+
+# ─── Email ───
+sendgrid==6.11.0
+
+
+
+
+

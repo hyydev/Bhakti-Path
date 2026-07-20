@@ -1,0 +1,61 @@
+# ─── Python ───
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# ─── Virtual Environment ───
+# Yeh container mein nahi jaana chahiye
+# Container apna pip install karta hai
+venv/
+env/
+.venv/
+ENV/
+
+# ─── Django ───
+*.log
+logs/
+local_settings.py
+db.sqlite3
+
+# ─── Media + Static ───
+# Yeh runtime pe generate hoti hain
+# Docker volume mein hoti hain
+media/
+staticfiles/
+
+# ─── Environment Files ───
+# KABHI container mein mat bhejo
+.env
+.env.*
+!.env.example    # .example allow karo (values nahi hain)
+
+# ─── Git ───
+.git/
+.gitignore
+
+# ─── IDE ───
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# ─── Testing ───
+.coverage
+htmlcov/
+.pytest_cache/
+coverage.xml
+
+# ─── Docker itself ───
+Dockerfile
+docker-compose*.yml
+.dockerignore
+
+# ─── OS ───
+.DS_Store
+Thumbs.db
