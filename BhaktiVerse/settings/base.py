@@ -52,32 +52,30 @@ BASE_DIR = Path(__file__).resolve().parent.parent.parent
 # config() → python-decouple → .env file padhta hai
 # Agar .env mein nahi mila → UndefinedValueError throw karega
 # Yeh intentional hai — bina SECRET_KEY ke server start hi nahi hoga
-SECRET_KEY = config('SECRET_KEY')
+SECRET_KEY = config("SECRET_KEY")
 
 
 # ─── INSTALLED APPS ───
 INSTALLED_APPS = [
-    'django.contrib.admin',
-    'django.contrib.auth',
-    'django.contrib.contenttypes',
-    'django.contrib.sessions',
-    'django.contrib.messages',
-    'django.contrib.staticfiles',
-
+    "django.contrib.admin",
+    "django.contrib.auth",
+    "django.contrib.contenttypes",
+    "django.contrib.sessions",
+    "django.contrib.messages",
+    "django.contrib.staticfiles",
     # Third party
-    'rest_framework',
-    'rest_framework_simplejwt',
-    'rest_framework_simplejwt.token_blacklist',
-    'drf_yasg',
-    'corsheaders',
-    'django_filters',
-
+    "rest_framework",
+    "rest_framework_simplejwt",
+    "rest_framework_simplejwt.token_blacklist",
+    "drf_yasg",
+    "corsheaders",
+    "django_filters",
     # Our apps
-    'apps.User.apps.UserConfig',
-    'apps.Auth',
-    'apps.ProductsManagement.apps.ProductsManagementConfig',
-    'apps.Order',
-    'apps.Payments',
+    "apps.User.apps.UserConfig",
+    "apps.Auth",
+    "apps.ProductsManagement.apps.ProductsManagementConfig",
+    "apps.Order",
+    "apps.Payments",
 ]
 
 
@@ -85,35 +83,35 @@ INSTALLED_APPS = [
 # Order matters! Upar wala pehle chalta hai
 # CorsMiddleware → CommonMiddleware se pehle aana zaroori hai
 MIDDLEWARE = [
-    'django.middleware.security.SecurityMiddleware',
+    "django.middleware.security.SecurityMiddleware",
     # WhiteNoise production.py mein index 1 pe inject hoga
-    'django.contrib.sessions.middleware.SessionMiddleware',
-    'corsheaders.middleware.CorsMiddleware',
-    'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
-    'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'django.contrib.messages.middleware.MessageMiddleware',
-    'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    "django.contrib.sessions.middleware.SessionMiddleware",
+    "corsheaders.middleware.CorsMiddleware",
+    "django.middleware.common.CommonMiddleware",
+    "django.middleware.csrf.CsrfViewMiddleware",
+    "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "django.contrib.messages.middleware.MessageMiddleware",
+    "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 
 
 # ─── URLS + WSGI ───
-ROOT_URLCONF = 'BhaktiVerse.urls'
-WSGI_APPLICATION = 'BhaktiVerse.wsgi.application'
+ROOT_URLCONF = "BhaktiVerse.urls"
+WSGI_APPLICATION = "BhaktiVerse.wsgi.application"
 
 
 # ─── TEMPLATES ───
 TEMPLATES = [
     {
-        'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
-        'APP_DIRS': True,
-        'OPTIONS': {
-            'context_processors': [
-                'django.template.context_processors.debug',
-                'django.template.context_processors.request',
-                'django.contrib.auth.context_processors.auth',
-                'django.contrib.messages.context_processors.messages',
+        "BACKEND": "django.template.backends.django.DjangoTemplates",
+        "DIRS": [],
+        "APP_DIRS": True,
+        "OPTIONS": {
+            "context_processors": [
+                "django.template.context_processors.debug",
+                "django.template.context_processors.request",
+                "django.contrib.auth.context_processors.auth",
+                "django.contrib.messages.context_processors.messages",
             ],
         },
     },
@@ -121,7 +119,7 @@ TEMPLATES = [
 
 
 # ─── CUSTOM USER MODEL ───
-AUTH_USER_MODEL = 'User.User'
+AUTH_USER_MODEL = "User.User"
 
 
 # ─── DATABASE ───
@@ -133,51 +131,56 @@ AUTH_USER_MODEL = 'User.User'
 #   60 seconds tak connection reuse karo
 #   Performance improvement especially under load
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME':     config('DB_NAME'),
-        'USER':     config('DB_USER'),
-        'PASSWORD': config('DB_PASSWORD'),
-        'HOST':     config('DB_HOST',    default='localhost'),
-        'PORT':     config('DB_PORT',    default='5432'),
-        'CONN_MAX_AGE': config('CONN_MAX_AGE', default=60, cast=int),
+    "default": {
+        "ENGINE": "django.db.backends.postgresql",
+        "NAME": config("DB_NAME"),
+        "USER": config("DB_USER"),
+        "PASSWORD": config("DB_PASSWORD"),
+        "HOST": config("DB_HOST", default="localhost"),
+        "PORT": config("DB_PORT", default="5432"),
+        "CONN_MAX_AGE": config("CONN_MAX_AGE", default=60, cast=int),
+        "OPTIONS": {
+            "sslmode": "require",
+        },
     }
 }
 
 
 # ─── PASSWORD VALIDATION ───
 AUTH_PASSWORD_VALIDATORS = [
-    {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
-    {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator'},
-    {'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator'},
-    {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
+    {
+        "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"
+    },
+    {"NAME": "django.contrib.auth.password_validation.MinimumLengthValidator"},
+    {"NAME": "django.contrib.auth.password_validation.CommonPasswordValidator"},
+    {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"},
 ]
 
 
 # ─── REST FRAMEWORK ───
 REST_FRAMEWORK = {
-    'DEFAULT_AUTHENTICATION_CLASSES': (
-        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    "DEFAULT_AUTHENTICATION_CLASSES": (
+        "rest_framework_simplejwt.authentication.JWTAuthentication",
     ),
-    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
-    'PAGE_SIZE': 10,
-    'DEFAULT_FILTER_BACKENDS': [
-        'django_filters.rest_framework.DjangoFilterBackend',
-        'rest_framework.filters.SearchFilter',
-        'rest_framework.filters.OrderingFilter',
+    "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",
+    "PAGE_SIZE": 10,
+    "DEFAULT_FILTER_BACKENDS": [
+        "django_filters.rest_framework.DjangoFilterBackend",
+        "rest_framework.filters.SearchFilter",
+        "rest_framework.filters.OrderingFilter",
     ],
     # Sirf JSON — BrowsableAPI dev mein on hoga (development.py mein)
-    'DEFAULT_RENDERER_CLASSES': [
-        'rest_framework.renderers.JSONRenderer',
+    "DEFAULT_RENDERER_CLASSES": [
+        "rest_framework.renderers.JSONRenderer",
     ],
     # Rate limiting — dev mein off hoga (development.py mein)
-    'DEFAULT_THROTTLE_CLASSES': [
-        'rest_framework.throttling.AnonRateThrottle',
-        'rest_framework.throttling.UserRateThrottle',
+    "DEFAULT_THROTTLE_CLASSES": [
+        "rest_framework.throttling.AnonRateThrottle",
+        "rest_framework.throttling.UserRateThrottle",
     ],
-    'DEFAULT_THROTTLE_RATES': {
-        'anon': '200/hour',
-        'user': '2000/hour',
+    "DEFAULT_THROTTLE_RATES": {
+        "anon": "200/hour",
+        "user": "2000/hour",
     },
 }
 
@@ -187,34 +190,34 @@ REST_FRAMEWORK = {
 #   ACCESS_TOKEN_LIFETIME: 30 days → 15 minutes
 #   ROTATE_REFRESH_TOKENS: False   → True
 SIMPLE_JWT = {
-    'AUTH_HEADER_TYPES': ('Bearer',),
-    'ACCESS_TOKEN_LIFETIME':  timedelta(minutes=15),
-    'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
-    'ROTATE_REFRESH_TOKENS':  True,
-    'BLACKLIST_AFTER_ROTATION': True,
-    'UPDATE_LAST_LOGIN': True,
+    "AUTH_HEADER_TYPES": ("Bearer",),
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=15),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=7),
+    "ROTATE_REFRESH_TOKENS": True,
+    "BLACKLIST_AFTER_ROTATION": True,
+    "UPDATE_LAST_LOGIN": True,
 }
 
 
 # ─── INTERNATIONALIZATION ───
-LANGUAGE_CODE = 'en-us'
-TIME_ZONE = 'Asia/Kolkata'    # UTC se fix — India timezone
+LANGUAGE_CODE = "en-us"
+TIME_ZONE = "Asia/Kolkata"  # UTC se fix — India timezone
 USE_I18N = True
 USE_TZ = True
 
 
 # ─── STATIC + MEDIA ───
-STATIC_URL  = '/static/'
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+STATIC_URL = "/static/"
+STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
 # collectstatic command sab static files yahan laata hai
 # WhiteNoise production mein yahan se serve karega
 
-MEDIA_URL  = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+MEDIA_URL = "/media/"
+MEDIA_ROOT = os.path.join(BASE_DIR, "media")
 
 
 # ─── DEFAULT AUTO FIELD ───
-DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 
 # ─── REDIS CACHE ───
@@ -229,7 +232,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 CACHES = {
     "default": {
         "BACKEND": "django_redis.cache.RedisCache",
-        "LOCATION": config('REDIS_URL', default='redis://127.0.0.1:6379/1'),
+        "LOCATION": config("REDIS_URL", default="redis://127.0.0.1:6379/1"),
         "OPTIONS": {
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
             "COMPRESSOR": "django_redis.compressors.zlib.ZlibCompressor",
@@ -243,24 +246,29 @@ CACHES = {
 
 
 # ─── RAZORPAY ───
-RAZORPAY_KEY_ID       = config('RAZORPAY_KEY_ID')
-RAZORPAY_KEY_SECRET   = config('RAZORPAY_KEY_SECRET')
-RAZORPAY_WEBHOOK_SECRET = config('RAZORPAY_WEBHOOK_SECRET')
+RAZORPAY_KEY_ID = config("RAZORPAY_KEY_ID")
+RAZORPAY_KEY_SECRET = config("RAZORPAY_KEY_SECRET")
+RAZORPAY_WEBHOOK_SECRET = config("RAZORPAY_WEBHOOK_SECRET")
 
 
 # ─── EMAIL ───
 # Dev mein development.py override karega → console backend
 # Prod mein production.py override karega → SendGrid SMTP
-SENDGRID_API_KEY  = config('SENDGRID_API_KEY',  default='')
-DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='noreply@bhaktipath.com')
-DEFAULT_FROM_NAME  = config('DEFAULT_FROM_NAME',  default='BhaktiPath')
+SENDGRID_API_KEY = config("SENDGRID_API_KEY", default="")
+DEFAULT_FROM_EMAIL = config("DEFAULT_FROM_EMAIL", default="noreply@bhaktipath.com")
+DEFAULT_FROM_NAME = config("DEFAULT_FROM_NAME", default="BhaktiPath")
 
 
 # ─── CORS — Base config ───
 # Origins dev/prod mein alag files mein define honge
 CORS_ALLOW_ALL_ORIGINS = False
 CORS_ALLOW_METHODS = [
-    "GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS",
+    "GET",
+    "POST",
+    "PUT",
+    "PATCH",
+    "DELETE",
+    "OPTIONS",
 ]
 CORS_ALLOW_HEADERS = [
     "accept",
@@ -275,20 +283,16 @@ CORS_ALLOW_HEADERS = [
 # DSN available hone pe initialize karo
 # Dev mein DSN .env mein ho toh dev errors bhi capture honge
 # Prod mein alag DSN hogi
-SENTRY_DSN = config('SENTRY_DSN', default='')
+SENTRY_DSN = config("SENTRY_DSN", default="")
 
 if SENTRY_DSN:
     sentry_sdk.init(
         dsn=SENTRY_DSN,
         integrations=[
-            DjangoIntegration(transaction_style='url'),
+            DjangoIntegration(transaction_style="url"),
             RedisIntegration(),
         ],
-        traces_sample_rate=config(
-            'SENTRY_TRACES_SAMPLE_RATE',
-            default=1.0,
-            cast=float
-        ),
-        environment=config('SENTRY_ENVIRONMENT', default='development'),
+        traces_sample_rate=config("SENTRY_TRACES_SAMPLE_RATE", default=1.0, cast=float),
+        environment=config("SENTRY_ENVIRONMENT", default="development"),
         send_default_pii=False,
     )
