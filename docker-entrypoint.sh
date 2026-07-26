@@ -4,6 +4,15 @@ set -e
 echo "BhaktiPath Backend Starting..."
 
 echo "Waiting for database..."
+
+python << 'EOF'
+import os
+print("DB_HOST =", repr(os.getenv("DB_HOST")))
+print("DB_NAME =", repr(os.getenv("DB_NAME")))
+print("DB_USER =", repr(os.getenv("DB_USER")))
+print("DB_PORT =", repr(os.getenv("DB_PORT")))
+EOF
+
 while ! python << 'EOF'
 import sys, os
 try:
