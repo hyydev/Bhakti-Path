@@ -73,7 +73,11 @@ SECRET_KEY=pr235_99tn2ze#s326&ag72og05clv70)dpgk=6&^qmozj^3&q
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [
+    "bhaktipath-backend-production.up.railway.app",
+    "localhost",
+    "127.0.0.1",
+]
 
 
 # Application definition
@@ -262,6 +266,7 @@ CORS_ALLOW_ALL_ORIGINS = False
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",
     "http://127.0.0.1:5173",
+    "https://bhakthipath-frontend.vercel.app",
 ]
 
 CORS_ALLOW_HEADERS = ["*"]
