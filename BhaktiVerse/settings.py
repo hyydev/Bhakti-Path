@@ -74,7 +74,7 @@ SECRET_KEY=pr235_99tn2ze#s326&ag72og05clv70)dpgk=6&^qmozj^3&q
 DEBUG = True
 
 ALLOWED_HOSTS = [
-    "bhaktipath-backend-production.up.railway.app",
+    "bhakti-path-production.up.railway.app",
     "localhost",
     "127.0.0.1",
 ]
