@@ -7,7 +7,7 @@ from django.core.files import File
 # Setup Django
 PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../../'))
 sys.path.insert(0, PROJECT_ROOT)  # Insert at beginning for priority
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "BhaktiVerse.settings")
+# os.environ.setdefault("DJANGO_SETTINGS_MODULE", "BhaktiVerse.settings")
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "BhaktiVerse.settings.production")
 
 import django
