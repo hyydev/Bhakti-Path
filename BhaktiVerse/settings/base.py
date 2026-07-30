@@ -72,6 +72,7 @@ INSTALLED_APPS = [
     "corsheaders",
     "django_filters",
     "cloudinary",
+    "anymail",
     # Our apps
     "apps.User.apps.UserConfig",
     "apps.Auth",
@@ -313,3 +314,4 @@ if SENTRY_DSN:
         environment=config("SENTRY_ENVIRONMENT", default="development"),
         send_default_pii=False,
     )
+EMAIL_TIMEOUT = 10 

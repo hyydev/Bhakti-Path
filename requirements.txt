@@ -35,6 +35,7 @@ psycopg2-binary==2.9.10
 redis==5.0.1
 django-cloudinary-storage==0.3.0
 cloudinary==1.40.0
+django-anymail[sendgrid]==11.1
 
 # ─── Cache ───
 django-redis==5.4.0

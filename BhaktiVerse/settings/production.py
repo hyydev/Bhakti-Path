@@ -54,15 +54,21 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 
 # ─── EMAIL — SendGrid SMTP ───
-# Production mein actual emails jaayengi
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.sendgrid.net'
-EMAIL_PORT = 587
-EMAIL_USE_TLS = True
-EMAIL_HOST_USER = 'apikey'                        # ← literally "apikey" string
-EMAIL_HOST_PASSWORD = config('SENDGRID_API_KEY')  # ← actual API key
+# Production mein actual emails jaayengi but railway free m SMTP allow nahi hai so we just commented out this
 
+# EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+# EMAIL_HOST = 'smtp.sendgrid.net'
+# EMAIL_PORT = 587
+# EMAIL_USE_TLS = True
+# EMAIL_HOST_USER = 'apikey'                        # ← literally "apikey" string
+# EMAIL_HOST_PASSWORD = config('SENDGRID_API_KEY')  # ← actual API key
 
+# SMTP antime mail allow hai 
+
+EMAIL_BACKEND = 'anymail.backends.sendgrid.EmailBackend'
+ANYMAIL = {
+    "SENDGRID_API_KEY": config('SENDGRID_API_KEY'),
+}
 # ─── SECURITY HEADERS ───
 # Yeh sab HTTP response headers hain
 # Browser ko batate hain kaise behave karna hai
