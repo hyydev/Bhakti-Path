@@ -51,6 +51,7 @@ MIDDLEWARE.insert(1, 'whitenoise.middleware.WhiteNoiseMiddleware')
 #   → style.css → style.abc123.css (cache busting)
 #   → Browser same file dobara download nahi karta
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+STORAGES["staticfiles"] = {"BACKEND": STATICFILES_STORAGE}
 
 
 # ─── EMAIL — SendGrid SMTP ───

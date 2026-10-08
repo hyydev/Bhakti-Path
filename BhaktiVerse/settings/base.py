@@ -143,7 +143,7 @@ DATABASES = {
         "PORT": config("DB_PORT", default="5432"),
         "CONN_MAX_AGE": config("CONN_MAX_AGE", default=60, cast=int),
         "OPTIONS": {
-            "sslmode": "require",
+            "sslmode": config("DB_SSLMODE", default="require"),
         },
     }
 }
@@ -216,6 +216,9 @@ STORAGES = {
         "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
     },
 }
+
+# django-cloudinary-storage collectstatic still reads this (Django 5 STORAGES compat)
+STATICFILES_STORAGE = STORAGES["staticfiles"]["BACKEND"]
 
 # ─── INTERNATIONALIZATION ───
 LANGUAGE_CODE = "en-us"
