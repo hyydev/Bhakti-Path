@@ -24,7 +24,8 @@ try:
         host=os.environ.get('DB_HOST'),
         port=os.environ.get('DB_PORT', '5432'),
         connect_timeout=5,
-        sslmode=os.environ.get('DB_SSLMODE', 'prefer'),
+        sslmode='require',
+       
     )
     conn.close()
     sys.exit(0)
